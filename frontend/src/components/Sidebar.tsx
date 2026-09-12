@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { ShieldHalf } from "lucide-react";
+import logoImg from "@/fav.io/logo.png";
 import { useAuth } from "@/hooks/useAuth";
 import { SECTOR_LABELS, SECTOR_NAV } from "@/navigation/sectorNavigation";
 
@@ -9,10 +9,8 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
-      <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-          <ShieldHalf size={20} />
-        </span>
+      <div className="flex items-center gap-2.5 border-b border-slate-100 px-5 py-4">
+        <img src={logoImg} alt="RakshaPath" className="h-9 w-9 object-contain" />
         <div>
           <p className="text-sm font-bold leading-tight text-slate-900">RakshaPath</p>
           <p className="text-[11px] leading-tight text-slate-400">

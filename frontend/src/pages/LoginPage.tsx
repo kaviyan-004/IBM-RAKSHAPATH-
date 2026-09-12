@@ -1,14 +1,22 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Lock as LockSmall, ShieldCheck, ShieldHalf } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Leaf,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import SectorSelector from "@/components/SectorSelector";
 import { sectorLandingPath } from "@/navigation/sectorNavigation";
 import type { Sector } from "@/types";
 
 const REMEMBER_KEY = "rakshapath.rememberedEmail";
-
-const FONT_SCALES = [0.9, 1, 1.1] as const;
 
 export default function LoginPage() {
   const { login, setSector } = useAuth();
@@ -16,14 +24,12 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedSector, setSelectedSector] = useState<Sector | undefined>(undefined);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [sectorError, setSectorError] = useState("");
   const [notice, setNotice] = useState("");
-  const [fontScaleIdx, setFontScaleIdx] = useState<0 | 1 | 2>(1);
+  const [fontScale, setFontScale] = useState<"small" | "normal" | "large">("normal");
 
   useEffect(() => {
     try {
@@ -33,7 +39,7 @@ export default function LoginPage() {
         setRememberMe(true);
       }
     } catch {
-      // ignore storage access failures (private browsing, etc.)
+      // ignore storage access failures
     }
   }, []);
 
@@ -42,135 +48,202 @@ export default function LoginPage() {
     setError("");
     setNotice("");
 
-    // Sector is required and validated before the existing email/password
-    // authentication runs — the backend contract stays exactly { email,
-    // password }; sector is frontend-only navigation context.
-    if (!selectedSector) {
-      setSectorError("Please select your sector to continue.");
+    if (!email.trim()) {
+      setError("Please enter your official email.");
       return;
     }
-    setSectorError("");
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+
     setLoading(true);
     try {
       await login({ email, password });
-      setSector(selectedSector);
+      // Default to government sector for seamless landing experience
+      const userSector: Sector = "government";
+      setSector(userSector);
       try {
         if (rememberMe) localStorage.setItem(REMEMBER_KEY, email);
         else localStorage.removeItem(REMEMBER_KEY);
       } catch {
-        // ignore storage access failures
+        // ignore
       }
-      navigate(sectorLandingPath(selectedSector));
+      navigate(sectorLandingPath(userSector));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.";
+      const message =
+        err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.";
       setError(message);
     } finally {
       setLoading(false);
     }
   };
 
+  const scaleMultiplier = fontScale === "small" ? "text-[0.93rem]" : fontScale === "large" ? "text-[1.05rem]" : "text-[1rem]";
+
   return (
     <div
-      className="flex min-h-screen w-full flex-col bg-primary-50 text-loginNeutral-900"
-      style={{ fontFamily: "'Noto Sans', ui-sans-serif, system-ui, sans-serif" }}
+      className={`flex min-h-screen h-screen flex-col bg-white text-slate-800 ${scaleMultiplier} antialiased overflow-hidden select-none`}
+      style={{ fontFamily: "'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
     >
-      {/* Top utility bar */}
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 bg-white px-4 py-3 sm:px-8">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-900 text-white">
-            <ShieldHalf size={19} />
-          </span>
-          <div className="leading-tight">
-            <p className="text-sm font-bold text-primary-900">RakshaPath</p>
-            <p className="text-[11px] text-secondary-500">Building Safer Roads for a Developed India</p>
+      {/* =========================================================================
+          TOP HEADER BAR
+          ========================================================================= */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200/90 bg-white px-4 sm:px-8 z-20">
+        {/* Left: Ashoka Emblem + Government Title */}
+        <div className="flex items-center gap-3">
+          <AshokaEmblem className="h-9 w-auto text-slate-900" />
+          <div className="flex flex-col justify-center leading-tight">
+            <span className="text-[12.5px] font-semibold text-slate-900 tracking-tight">
+              Building Safer Roads
+            </span>
+            <span className="text-[11.5px] font-normal text-slate-600">
+              for a Developed India
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-secondary-600">
-          <label className="flex items-center gap-1">
-            <span className="sr-only">Select language</span>
+        {/* Right: Language, Font Resize, Help, Tagline + Tricolor Wave */}
+        <div className="flex items-center gap-4 text-xs text-slate-600">
+          {/* Language Selector */}
+          <div className="relative flex items-center">
             <select
               defaultValue="en"
-              className="rounded-md border border-secondary-200 bg-white px-2 py-1 text-xs text-secondary-700 outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              aria-label="Language selector"
+              className="appearance-none bg-transparent pr-4 text-xs font-normal text-slate-700 outline-none cursor-pointer hover:text-slate-900"
             >
               <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="ta">தமிழ்</option>
             </select>
-          </label>
-
-          <div className="hidden items-center gap-1 sm:flex" role="group" aria-label="Adjust text size">
-            {(["A-", "A", "A+"] as const).map((label, idx) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => setFontScaleIdx(idx as 0 | 1 | 2)}
-                aria-pressed={fontScaleIdx === idx}
-                className={`rounded-md border px-1.5 py-0.5 font-semibold transition ${
-                  fontScaleIdx === idx ? "border-primary-500 bg-primary-50 text-primary-700" : "border-secondary-200 text-secondary-500 hover:bg-secondary-50"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+            <span className="pointer-events-none absolute right-0 text-[10px] text-slate-500">▼</span>
           </div>
 
-          <button type="button" className="font-medium text-secondary-600 hover:text-primary-600" title="Contact your system administrator for support">
-            Help
+          <span className="text-slate-300 select-none">|</span>
+
+          {/* Font Size Adjusters: A- A A+ */}
+          <div className="flex items-center gap-1.5 font-medium text-slate-700" role="group" aria-label="Adjust text size">
+            <button
+              type="button"
+              onClick={() => setFontScale("small")}
+              className={`hover:text-blue-600 transition ${fontScale === "small" ? "font-bold text-blue-600" : ""}`}
+            >
+              A-
+            </button>
+            <button
+              type="button"
+              onClick={() => setFontScale("normal")}
+              className={`hover:text-blue-600 transition ${fontScale === "normal" ? "font-bold text-blue-600" : ""}`}
+            >
+              A
+            </button>
+            <button
+              type="button"
+              onClick={() => setFontScale("large")}
+              className={`hover:text-blue-600 transition ${fontScale === "large" ? "font-bold text-blue-600" : ""}`}
+            >
+              A+
+            </button>
+          </div>
+
+          <span className="text-slate-300 select-none">|</span>
+
+          {/* Help link */}
+          <button
+            type="button"
+            onClick={() => setNotice("Support helpline: 1800-ROAD-SAFE (Toll Free) or support@rakshapath.gov.in")}
+            className="flex items-center gap-1 text-xs font-normal text-slate-700 hover:text-blue-600 transition"
+          >
+            <HelpCircle size={14} className="text-slate-600" />
+            <span>Help</span>
           </button>
+
+          {/* Tagline & Tricolor Ribbon */}
+          <div className="hidden sm:flex items-center gap-2 pl-2">
+            <div className="text-right leading-tight text-[11px] font-medium text-slate-800">
+              <p>Safer People</p>
+              <p>Stronger Bharat</p>
+            </div>
+            <TricolorWave className="h-6 w-8" />
+          </div>
         </div>
       </header>
 
-      {/* Main two-column area */}
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:flex-row" style={{ fontSize: `${FONT_SCALES[fontScaleIdx]}rem` }}>
-        {/* Left — brand & hero visual */}
-        <section className="relative hidden overflow-hidden lg:flex lg:w-[55%]">
+      {/* =========================================================================
+          MAIN BODY: 2-COLUMN SPLIT (HERO ON LEFT, LOGIN ON RIGHT)
+          ========================================================================= */}
+      <main className="flex flex-1 min-h-0 w-full flex-col lg:flex-row overflow-hidden">
+        {/* LEFT COLUMN: HERO IMAGE & 4 PILLARS OVERLAY BAR */}
+        <section className="relative hidden lg:flex lg:w-[54%] xl:w-[55%] h-full overflow-hidden bg-slate-900 select-none">
           <img
             src="/login-hero.png"
-            alt="RakshaPath — AI-powered road safety decision intelligence platform. Data-driven insights, safer roads, smarter interventions, and stronger communities, on the way to a safer road network."
-            className="h-full w-full object-cover"
+            alt="RakshaPath — AI-Powered Road Safety Decision Intelligence Platform"
+            className="h-full w-full object-cover object-left-top"
           />
+
+          {/* 4 Pillars Bottom Bar (Safer Citizens, Smarter Cities, Sustainable Mobility, Viksit Bharat) */}
+          <div className="absolute bottom-0 inset-x-0 z-10 grid grid-cols-4 border-t border-white/20 bg-[#162739]/85 backdrop-blur-[3px] py-2.5 text-center text-white">
+            <div className="flex flex-col items-center justify-center gap-1 border-r border-white/15 px-2">
+              <Users size={19} className="text-white/95" />
+              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Safer Citizens</span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 border-r border-white/15 px-2">
+              <Building2 size={19} className="text-white/95" />
+              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Smarter Cities</span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 border-r border-white/15 px-2">
+              <Leaf size={19} className="text-white/95" />
+              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Sustainable Mobility</span>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1 px-2">
+              <IndiaOutlineIcon className="h-5 w-5 text-white/95" />
+              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Viksit Bharat</span>
+            </div>
+          </div>
         </section>
 
-        {/* Right — sign-in form */}
-        <section className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-8 lg:w-[45%]">
-          <div className="w-full max-w-md">
-            <div className="mb-5 flex items-center gap-2 lg:hidden">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-900 text-white">
-                <ShieldHalf size={18} />
-              </span>
-              <p className="text-base font-bold text-primary-900">RakshaPath</p>
-            </div>
-
-            <div className="rounded-xl border border-secondary-200 bg-white p-7 shadow-sm sm:p-8">
-              <div className="mb-1 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-accent-600">
-                <span className="flex items-center gap-1.5">
-                  <LockSmall size={13} />
+        {/* RIGHT COLUMN: LOGIN FORM & AUTHORIZED ACCESS CARD */}
+        <section className="flex flex-1 flex-col items-center justify-center bg-[#F4F7FB] px-4 py-4 sm:px-8 overflow-y-auto">
+          <div className="w-full max-w-[430px] flex flex-col items-center my-auto py-2">
+            {/* White Sign-in Card */}
+            <div className="w-full rounded-2xl border border-slate-200/80 bg-white p-7 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.04)]">
+              {/* Header: SECURE ACCESS with Cyan/Blue horizontal line */}
+              <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-wider text-[#0066cc] uppercase">
+                <span className="flex items-center gap-1">
+                  <Lock size={12} className="text-[#0066cc]" />
                   Secure Access
                 </span>
-                <span className="h-px flex-1 bg-secondary-200" />
+                <span className="h-[1.5px] w-24 bg-[#66a3e0]/50 rounded-full" />
               </div>
-              <h2 className="text-2xl font-bold text-primary-900">
-                Welcome to <span className="text-primary-600">RakshaPath</span>
-              </h2>
-              <p className="mt-1 text-sm text-secondary-500">Sign in to access road safety intelligence and decision tools.</p>
 
+              {/* Title & Subtitle */}
+              <h1 className="text-[23px] sm:text-[25px] font-bold text-slate-800 tracking-tight leading-snug">
+                Welcome to <span className="text-[#1976D2]">RakshaPath</span>
+              </h1>
+              <p className="mt-1 text-xs text-slate-500 font-normal leading-relaxed">
+                Sign in to access road safety intelligence and decision tools.
+              </p>
+
+              {/* Error / Notice Banners */}
               {error && (
-                <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-700">
+                <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs font-medium text-red-700">
                   {error}
                 </div>
               )}
               {notice && (
-                <div role="status" className="mt-4 rounded-lg border border-primary-200 bg-primary-50 p-3 text-xs font-medium text-primary-700">
+                <div role="status" className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-2.5 text-xs font-medium text-blue-700">
                   {notice}
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="mt-5 space-y-4" noValidate>
+              {/* Login Form */}
+              <form onSubmit={handleSubmit} className="mt-4 space-y-3.5" noValidate>
                 <div>
-                  <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-loginNeutral-800">
+                  <label htmlFor="login-email" className="mb-1 block text-xs font-semibold text-slate-700">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400" />
+                    <Mail size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       id="login-email"
                       type="email"
@@ -179,17 +252,17 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your official email"
-                      className="h-11 w-full rounded-lg border border-secondary-200 bg-white pl-9 pr-3 text-sm text-loginNeutral-900 outline-none transition placeholder:text-secondary-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                      className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1976D2] focus:ring-1 focus:ring-[#1976D2]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-loginNeutral-800">
+                  <label htmlFor="login-password" className="mb-1 block text-xs font-semibold text-slate-700">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400" />
+                    <Lock size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       id="login-password"
                       type={showPassword ? "text" : "password"}
@@ -198,113 +271,242 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="h-11 w-full rounded-lg border border-secondary-200 bg-white pl-9 pr-10 text-sm text-loginNeutral-900 outline-none transition placeholder:text-secondary-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                      className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1976D2] focus:ring-1 focus:ring-[#1976D2]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
                       aria-pressed={showPassword}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                 </div>
 
-                <SectorSelector value={selectedSector} onChange={(s) => { setSelectedSector(s); setSectorError(""); }} error={sectorError} />
-
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 text-secondary-600">
+                {/* Remember Me & Forgot Password */}
+                <div className="flex items-center justify-between text-xs pt-0.5">
+                  <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary-500"
+                      className="h-3.5 w-3.5 rounded border-slate-300 accent-[#1976D2]"
                     />
                     Remember me
                   </label>
                   <button
                     type="button"
-                    onClick={() => setNotice("Please contact your system administrator to reset your password.")}
-                    className="font-semibold text-primary-600 hover:underline"
+                    onClick={() => setNotice("Please contact your department administrator to reset your credentials.")}
+                    className="font-medium text-[#1976D2] hover:underline"
                   >
                     Forgot Password?
                   </button>
                 </div>
 
+                {/* Sign In Button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary-500 text-sm font-semibold text-white transition hover:bg-primary-600 active:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-1 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#1976D2] text-xs sm:text-sm font-semibold text-white transition hover:bg-[#1565C0] active:bg-[#0D47A1] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
                 >
                   {loading ? "Signing in..." : "Sign In"}
-                  {!loading && <ArrowRight size={16} />}
+                  {!loading && <ArrowRight size={15} />}
                 </button>
               </form>
 
-              <div className="my-5 flex items-center gap-3 text-xs text-secondary-400">
-                <span className="h-px flex-1 bg-secondary-200" />
+              {/* OR Divider */}
+              <div className="my-3.5 flex items-center gap-3 text-[11px] text-slate-400 font-medium">
+                <span className="h-px flex-1 bg-slate-200" />
                 OR
-                <span className="h-px flex-1 bg-secondary-200" />
+                <span className="h-px flex-1 bg-slate-200" />
               </div>
 
+              {/* Continue with Google */}
               <button
                 type="button"
-                onClick={() => setNotice("Google sign-in is not configured for this environment yet.")}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-secondary-200 bg-white text-sm font-semibold text-loginNeutral-800 transition hover:bg-secondary-50"
+                onClick={() => setNotice("Single Sign-On (SSO) with Google Workspace is restricted to authorized departments.")}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
               >
                 <GoogleGlyph />
                 Continue with Google
               </button>
 
-              <p className="mt-6 text-center text-sm text-secondary-500">
+              {/* Create an account link */}
+              <p className="mt-4 text-center text-xs text-slate-500 font-normal">
                 New to RakshaPath?{" "}
-                <Link to="/signup" className="font-semibold text-primary-600 hover:underline">
+                <Link to="/signup" className="font-semibold text-[#1976D2] hover:underline">
                   Create an account
                 </Link>
               </p>
             </div>
 
-            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-primary-200 bg-primary-100/60 p-3.5 text-xs text-primary-900">
-              <ShieldCheck size={16} className="mt-0.5 shrink-0 text-primary-600" />
-              <p>
-                <span className="font-semibold">Authorized access only.</span> This platform is intended for transport authorities, traffic police, road
-                safety committees, and other approved personnel.
-              </p>
+            {/* Blue Notice Box: Authorized access only */}
+            <div className="mt-3.5 w-full rounded-xl border border-[#D3E3F8] bg-[#EBF3FC] p-3.5 flex items-start gap-2.5 text-slate-700">
+              <div className="mt-0.5 shrink-0">
+                <ShieldCheck size={18} className="text-[#1976D2]" />
+              </div>
+              <div className="leading-snug">
+                <p className="text-xs font-bold text-slate-900">Authorized access only</p>
+                <p className="text-[11px] text-slate-600 mt-0.5">
+                  This system is for authorized users from Government Departments, Traffic Police, Road Safety Authorities, Researchers and other permitted users.
+                </p>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-secondary-200 bg-white px-4 py-3 text-[11px] text-secondary-500 sm:px-8">
-        <span>About • Privacy Policy • Terms of Use • Accessibility • Contact Us</span>
-        <span>A Safer Roads Initiative</span>
+      {/* =========================================================================
+          BOTTOM FOOTER BAR
+          ========================================================================= */}
+      <footer className="flex h-11 shrink-0 items-center justify-between border-t border-slate-200/90 bg-white px-4 sm:px-8 text-[11px] text-slate-500 z-20">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="hover:text-slate-800 cursor-pointer">About</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 cursor-pointer">Privacy Policy</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 cursor-pointer">Terms of Use</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 cursor-pointer">Accessibility</span>
+          <span className="text-slate-300">|</span>
+          <span className="hover:text-slate-800 cursor-pointer">Contact Us</span>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <span className="text-slate-600 font-normal">
+            A Safer India Initiative <span className="text-slate-300 mx-1">|</span> Made for a Better Tomorrow
+          </span>
+          <TricolorWave className="h-4 w-6" />
+        </div>
       </footer>
     </div>
   );
 }
 
-function GoogleGlyph() {
+/* =========================================================================
+   SVG ICONS & GRAPHICS
+   ========================================================================= */
+
+/**
+ * State Emblem of India (Ashoka Lion Capital with Satyameva Jayate)
+ */
+function AshokaEmblem({ className = "h-9 w-auto" }: { className?: string }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+    <svg
+      viewBox="0 0 60 70"
+      fill="currentColor"
+      className={className}
+      aria-label="State Emblem of India"
+    >
+      {/* Lions Capital Silhouette */}
+      <path d="M22 6c0-2 2-4 4-4h8c2 0 4 2 4 4v4h-16V6z" />
+      {/* Left Lion */}
+      <path d="M16 10c-2 0-4 2-5 5-1 3-1 7 1 10 1 2 3 3 5 3v-7c0-2 1-4 3-5-2-3-3-4-4-6z" />
+      {/* Center Lion */}
+      <path d="M26 8c-2 0-3 2-3 4v10h14V12c0-2-1-4-3-4h-8z" />
+      {/* Right Lion */}
+      <path d="M44 10c2 0 4 2 5 5 1 3 1 7-1 10-1 2-3 3-5 3v-7c0-2-1-4-3-5 2-3 3-4 4-6z" />
+      {/* Chests & Manes */}
+      <path d="M20 23c-2 2-3 5-3 8 0 3 2 6 5 7v-15h-2z" />
+      <path d="M26 23h8v15h-8V23z" />
+      <path d="M40 23c2 2 3 5 3 8 0 3-2 6-5 7v-15h2z" />
+      {/* Abacus platform */}
+      <path d="M12 39h36v5H12z" />
+      {/* Dharma Chakra in Center */}
+      <circle cx="30" cy="41.5" r="2.2" fill="#fff" />
+      <circle cx="30" cy="41.5" r="1.2" fill="currentColor" />
+      {/* Horse on left */}
+      <circle cx="18" cy="41.5" r="1.2" fill="#fff" />
+      {/* Bull on right */}
+      <circle cx="42" cy="41.5" r="1.2" fill="#fff" />
+      {/* Lotus Base */}
+      <path d="M16 45c2 4 8 6 14 6s12-2 14-6H16z" />
+      {/* Pedestal Base */}
+      <path d="M14 52h32v3H14z" />
+      {/* Satyameva Jayate (text styling representation) */}
+      <text
+        x="30"
+        y="62"
+        textAnchor="middle"
+        fontSize="5.5"
+        fontWeight="bold"
+        fontFamily="'Noto Sans Devanagari', 'Noto Sans', sans-serif"
+        fill="currentColor"
+        letterSpacing="0.5"
+      >
+        सत्यमेव जयते
+      </text>
+    </svg>
+  );
+}
+
+/**
+ * Indian Flag Tricolor Wave / Ribbon Accent
+ */
+function TricolorWave({ className = "h-5 w-8" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 24" fill="none" className={className} aria-hidden="true">
+      {/* Saffron Wave */}
       <path
-        fill="#FFC107"
-        d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+        d="M2 7 C 12 1, 24 12, 38 4 C 34 2, 22 0, 2 7 Z"
+        fill="#FF9933"
       />
       <path
-        fill="#FF3D00"
-        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+        d="M2 9 C 14 3, 25 14, 38 6 C 36 7, 24 15, 2 11 Z"
+        fill="#FFFFFF"
+        stroke="#E2E8F0"
+        strokeWidth="0.5"
       />
+      {/* Green Wave */}
       <path
-        fill="#4CAF50"
-        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
-      />
-      <path
-        fill="#1976D2"
-        d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+        d="M2 12 C 14 6, 25 17, 38 9 C 34 14, 20 18, 2 14 Z"
+        fill="#138808"
       />
     </svg>
   );
 }
 
+/**
+ * India Map Outline / Viksit Bharat Icon
+ */
+function IndiaOutlineIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Crisp map contour of India */}
+      <path d="M12 2l1.2 1.8.8-.4.6.8 1.4.2.2 1.4 1 .6.2 1.2-1 .8.4 1.4-1.2 1.2 1.4 1 .2 1.6-1.2 1.4.2 1.4-1.4 2-1.2 2.6-.8-.2-.8-2.6-1.4-1.2.2-1.6-1.2-1.2.4-1.4-1-.8.2-1.2 1-.6.2-1.4 1.4-.2.6-.8.8.4L12 2z" />
+    </svg>
+  );
+}
+
+/**
+ * Official Google G Glyph
+ */
+function GoogleGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 48 48" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
+    </svg>
+  );
+}
