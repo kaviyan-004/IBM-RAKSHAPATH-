@@ -41,6 +41,7 @@ export interface SectorNavItem {
 export const SECTOR_NAV: Record<Sector, SectorNavItem[]> = {
   government: [
     { label: "Dashboard", path: "/", icon: LayoutDashboard, exact: true },
+    { label: "AI & ML Training", path: "/ml-training", icon: BrainCircuit },
     { label: "Risk Map", path: "/risk-map", icon: Map },
     { label: "Locations", path: "/locations", icon: MapPin },
     { label: "Interventions", path: "/interventions", icon: Wrench },

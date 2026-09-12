@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends
-from backend.database import get_database
-from backend.schemas import SimulationRequest, SimulationResultResponse
-from backend.services.simulation_service import run_simulation
+from sqlalchemy.orm import Session
+from backend.database import get_db
+from backend.schemas import SimulationRequest, SimulationResult
+from backend.services import simulation_service
 
-router = APIRouter(prefix="/simulation", tags=["What-If Simulation"])
+router = APIRouter(prefix="/simulation", tags=["Counterfactual Simulation"])
 
 
-@router.post("", response_model=SimulationResultResponse)
-async def simulate(request: SimulationRequest, db = Depends(get_database)):
-    """Run counterfactual what-if simulation to estimate post-intervention risk reduction"""
-    return await run_simulation(db, request)
+@router.post("", response_model=SimulationResult)
+async def simulate_interventions(
+    request: SimulationRequest,
+    db: Session = Depends(get_db)
+):
+    return simulation_service.run_simulation(db, request)

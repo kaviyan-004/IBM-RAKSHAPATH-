@@ -1,19 +1,13 @@
-from typing import List
 from fastapi import APIRouter, Depends
-from backend.database import get_database
-from backend.schemas import AlertItemResponse
-from backend.services.alerts_service import get_all_alerts, mark_alert_as_read
+from typing import List
+from sqlalchemy.orm import Session
+from backend.database import get_db
+from backend.schemas import AlertItem
+from backend.services import alerts_service
 
-router = APIRouter(prefix="/alerts", tags=["Alerts"])
-
-
-@router.get("", response_model=List[AlertItemResponse])
-async def list_alerts(db = Depends(get_database)):
-    """Retrieve safety alerts and system notifications"""
-    return await get_all_alerts(db)
+router = APIRouter(prefix="/alerts", tags=["Early Warnings & Alerts"])
 
 
-@router.put("/{alert_id}/read", response_model=AlertItemResponse)
-async def mark_read(alert_id: str, db = Depends(get_database)):
-    """Mark an alert as read"""
-    return await mark_alert_as_read(db, alert_id)
+@router.get("", response_model=List[AlertItem])
+async def list_alerts(db: Session = Depends(get_db)):
+    return alerts_service.get_alerts(db)

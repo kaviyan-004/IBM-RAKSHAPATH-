@@ -16,6 +16,7 @@ import BudgetOptimizerPage from "@/pages/BudgetOptimizerPage";
 import ReportsPage from "@/pages/ReportsPage";
 import ReportViewPage from "@/pages/ReportViewPage";
 import AlertsPage from "@/pages/AlertsPage";
+import MLTrainingPage from "@/pages/MLTrainingPage";
 import ProfileSettingsPage from "@/pages/ProfileSettingsPage";
 import PublicHomePage from "@/pages/PublicHomePage";
 import SectorPlaceholderPage from "@/pages/SectorPlaceholderPage";
@@ -36,6 +37,7 @@ export default function AppRoutes() {
         {/* ---------------- Government ---------------- */}
         <Route element={<SectorRouteGuard sector="government" />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/ml-training" element={<MLTrainingPage />} />
           <Route path="/risk-map" element={<RiskMapPage />} />
           <Route path="/locations" element={<LocationsListPage />} />
           <Route path="/locations/:id" element={<LocationIntelligencePage />} />
@@ -67,16 +69,7 @@ export default function AppRoutes() {
               />
             }
           />
-          <Route
-            path="/xai"
-            element={
-              <SectorPlaceholderPage
-                title="SHAP / XAI Analysis"
-                description="Aggregate explainability tooling for the risk model is planned here — SHAP summary plots and feature-importance rankings across the network."
-                icon={BrainCircuit}
-              />
-            }
-          />
+          <Route path="/xai" element={<MLTrainingPage />} />
           <Route
             path="/risk-forecast"
             element={

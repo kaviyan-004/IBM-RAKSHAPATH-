@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
-from backend.database import get_database
-from backend.schemas import DistrictSummaryResponse
-from backend.services.dashboard_service import get_district_summary
+from sqlalchemy.orm import Session
+from backend.database import get_db
+from backend.schemas import DistrictSummary
+from backend.services import dashboard_service
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(prefix="/dashboard", tags=["Executive Dashboard"])
 
 
-@router.get("/summary", response_model=DistrictSummaryResponse)
-async def get_summary(db = Depends(get_database)):
-    """Retrieve district summary metrics and top priority risk corridors"""
-    return await get_district_summary(db)
+@router.get("/summary", response_model=DistrictSummary)
+async def get_dashboard_summary(db: Session = Depends(get_db)):
+    return dashboard_service.get_district_summary(db)

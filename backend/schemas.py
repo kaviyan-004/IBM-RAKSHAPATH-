@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
@@ -17,201 +17,227 @@ class CamelBaseModel(BaseModel):
 
 
 # --- Location Schemas ---
-class LocationBase(CamelBaseModel):
+class Location(CamelBaseModel):
     location_id: str
     name: str
-    state: str
-    district: str
+    state: str = "Tamil Nadu"
+    district: str = "Coimbatore"
     latitude: float
     longitude: float
-    road_type: str
-    area_type: str
+    road_type: str = "Arterial Corridor"
+    area_type: str = "Commercial"
 
-
-class LocationCreate(LocationBase):
-    pass
-
-
-class LocationResponse(LocationBase):
-    pass
+LocationResponse = Location
+LocationBase = Location
 
 
 # --- Risk Score Schemas ---
-class RiskScoreResponse(CamelBaseModel):
+class RiskScore(CamelBaseModel):
     location_id: str
-    score: int
-    level: Literal["low", "moderate", "high", "critical"]
-    trend: Literal["increasing", "decreasing", "stable"]
-    is_emerging: bool
-    confidence: float
-    data_quality: Literal["high", "medium", "low"]
-    accidents3yr: int = Field(..., alias="accidents3yr")
-    fatalities3yr: int = Field(..., alias="fatalities3yr")
-    injuries3yr: int = Field(..., alias="injuries3yr")
-    peak_risk_window: str
-    dataset_version: str
-    model_version: str
-    predicted_at: str
+    score: float
+    level: str  # low, moderate, high, critical
+    trend: str = "stable"  # increasing, decreasing, stable
+    is_emerging: bool = False
+    confidence: float = 0.85
+    data_quality: str = "high"
+    accidents3yr: int = 30
+    fatalities3yr: int = 5
+    injuries3yr: int = 38
+    peak_risk_window: str = "7:00 PM - 10:00 PM"
+    dataset_version: str = "morth-2019-2023-v2"
+    model_version: str = "xgb-risk-v1.3"
+    predicted_at: str = "2026-09-12T21:30:00Z"
+
+RiskScoreResponse = RiskScore
 
 
 # --- Cause Analysis Schemas ---
 class CauseContribution(CamelBaseModel):
     factor: str
     contribution_points: float
-    description: str
+    description: str = ""
 
 
-class CauseFingerprintResponse(CamelBaseModel):
+class CauseFingerprint(CamelBaseModel):
     location_id: str
-    risk_score: int
+    risk_score: float
     top_factors: List[CauseContribution]
-    note: str
+    note: str = ""
+
+CauseFingerprintResponse = CauseFingerprint
 
 
 # --- Vulnerability Schemas ---
-class VulnerabilityGroupItem(CamelBaseModel):
+class VulnerabilityGroup(CamelBaseModel):
     group: str
     involvement_share: float
     fatality_share: float
 
+VulnerabilityGroupItem = VulnerabilityGroup
 
-class VulnerabilityAnalysisResponse(CamelBaseModel):
+
+class VulnerabilityAnalysis(CamelBaseModel):
     location_id: str
     most_affected_group: str
-    groups: List[VulnerabilityGroupItem]
-    confidence: float
+    groups: List[VulnerabilityGroup]
+    confidence: float = 0.88
+
+VulnerabilityAnalysisResponse = VulnerabilityAnalysis
 
 
 # --- Temporal Analysis Schemas ---
-class TemporalBucketItem(CamelBaseModel):
+class TemporalBucket(CamelBaseModel):
     label: str
     accident_share: float
 
+TemporalBucketItem = TemporalBucket
 
-class TemporalAnalysisResponse(CamelBaseModel):
+
+class TemporalAnalysis(CamelBaseModel):
     location_id: str
-    peak_hour_window: str
-    peak_day_type: str
-    hourly: List[TemporalBucketItem]
-    day_of_week: List[TemporalBucketItem] = Field(..., alias="dayOfWeek")
+    peak_hour_window: str = "7:00 PM - 10:00 PM"
+    peak_day_type: str = "Friday & Weekend Evenings"
+    hourly: List[TemporalBucket] = []
+    day_of_week: List[TemporalBucket] = Field(default=[], alias="dayOfWeek")
+
+TemporalAnalysisResponse = TemporalAnalysis
 
 
 # --- Future Forecast Schemas ---
-class RiskForecastPointItem(CamelBaseModel):
+class RiskForecastPoint(CamelBaseModel):
     year: int
-    risk: int
-    lower_bound: int
-    upper_bound: int
+    risk: float
+    lower_bound: float
+    upper_bound: float
+
+RiskForecastPointItem = RiskForecastPoint
 
 
-class RiskForecastResponse(CamelBaseModel):
+class RiskForecast(CamelBaseModel):
     location_id: str
-    current_risk: int
-    horizon_years: int
-    trend: Literal["increasing", "decreasing", "stable"]
-    is_emerging_hotspot: bool
-    confidence: float
-    series: List[RiskForecastPointItem]
+    current_risk: float
+    horizon_years: int = 3
+    trend: str = "stable"
+    is_emerging_hotspot: bool = False
+    confidence: float = 0.85
+    series: List[RiskForecastPoint] = []
+
+RiskForecastResponse = RiskForecast
 
 
 # --- Intervention Schemas ---
-class InterventionResponse(CamelBaseModel):
+class Intervention(CamelBaseModel):
     intervention_id: str
     name: str
     target_cause: str
-    cause_match: float
-    context_match: float
-    suitable_context: str
-    estimated_cost_min: float
-    estimated_cost_max: float
-    expected_effect_min: float
-    expected_effect_max: float
-    confidence: Literal["High", "Medium", "Low"]
-    evidence_source: str
-    implementation_constraints: str
+    cause_match: float = 0.90
+    context_match: float = 0.90
+    suitable_context: str = "Arterial Corridor"
+    estimated_cost_min: float = 1500000.0
+    estimated_cost_max: float = 2500000.0
+    expected_effect_min: float = 25.0
+    expected_effect_max: float = 38.0
+    confidence: str = "High"
+    evidence_source: str = "IRC Guidelines"
+    implementation_constraints: str = "Standard civil work"
+
+InterventionResponse = Intervention
 
 
 # --- Simulation Schemas ---
 class SimulationRequest(CamelBaseModel):
     location_id: str
-    intervention_ids: List[str]
+    intervention_ids: List[str] = []
 
 
-class SimulationResultResponse(CamelBaseModel):
-    intervention_id: str
-    intervention_name: str
-    baseline_risk: int
-    simulated_risk: int
-    risk_reduction_pct: float
-    lower_bound: int
-    upper_bound: int
-    confidence: Literal["High", "Medium", "Low"]
-    assumptions: List[str]
+class SimulationResult(CamelBaseModel):
+    location_id: str
+    baseline_risk: float
+    projected_risk: float
+    risk_reduction: float
+    confidence_interval_min: float
+    confidence_interval_max: float
+    model_version: str = "xgb-risk-v1.3"
+    simulated_at: str = "2026-09-12T21:30:00Z"
+
+SimulationResultResponse = SimulationResult
 
 
 # --- Budget Optimization Schemas ---
-class OptimizationCandidateItem(CamelBaseModel):
+class OptimizationCandidate(CamelBaseModel):
     location_id: str
     location_name: str
     intervention_id: str
     intervention_name: str
-    cost: int
+    cost: float
     expected_benefit: float
-    confidence: Literal["High", "Medium", "Low"]
+    confidence: str = "High"
+
+OptimizationCandidateItem = OptimizationCandidate
 
 
 class OptimizationRequest(CamelBaseModel):
-    budget_limit: float
+    budget_limit: float = 5000000.0
     location_ids: Optional[List[str]] = None
     max_interventions: Optional[int] = None
 
 
-class OptimizationResultResponse(CamelBaseModel):
+class OptimizationResult(CamelBaseModel):
     budget_limit: float
     total_cost: float
     remaining_budget: float
     expected_benefit: float
-    selected: List[OptimizationCandidateItem]
-    excluded: List[OptimizationCandidateItem]
+    selected: List[OptimizationCandidate] = []
+    excluded: List[OptimizationCandidate] = []
+
+OptimizationResultResponse = OptimizationResult
 
 
 # --- District Summary Schemas ---
-class PriorityLocationItem(CamelBaseModel):
+class PriorityLocation(CamelBaseModel):
     location_id: str
     name: str
-    score: int
+    score: float
+
+PriorityLocationItem = PriorityLocation
 
 
-class DistrictSummaryResponse(CamelBaseModel):
-    district: str
-    total_locations_analyzed: int
-    high_risk_locations: int
-    emerging_risk_locations: int
-    interventions_pending: int
-    current_safety_budget: float
-    last_updated: str
-    top_priority_locations: List[PriorityLocationItem]
+class DistrictSummary(CamelBaseModel):
+    district: str = "National & State Network"
+    total_locations_analyzed: int = 68
+    high_risk_locations: int = 15
+    emerging_risk_locations: int = 8
+    interventions_pending: int = 30
+    current_safety_budget: float = 15000000.0
+    last_updated: str = "2026-09-12T21:30:00Z"
+    top_priority_locations: List[PriorityLocation] = []
+
+DistrictSummaryResponse = DistrictSummary
 
 
 # --- Alert Schemas ---
-class AlertItemResponse(CamelBaseModel):
+class AlertItem(CamelBaseModel):
     id: str
-    severity: Literal["high-risk", "emerging-risk", "intervention-update", "system"]
+    severity: str = "high-risk"  # high-risk, emerging-risk, intervention-update, system
     title: str
     detail: str
     timestamp: str
-    read: bool
+    read: bool = False
+
+AlertItemResponse = AlertItem
 
 
 # --- Report Schemas ---
-class AuthorityReportResponse(CamelBaseModel):
+class AuthorityReport(CamelBaseModel):
     report_id: str
     location_id: Optional[str] = None
     district: Optional[str] = None
     title: str
     generated_at: str
     file_name: str
-    kind: Literal["location", "district", "budget"]
+    kind: str = "location"  # location, district, budget
+
+AuthorityReportResponse = AuthorityReport
 
 
 # --- Auth & User Schemas ---
@@ -233,40 +259,3 @@ class SignupRequest(CamelBaseModel):
     full_name: str = Field(..., alias="fullName")
     email: str
     password: str
-
-
-# --- Incident Schemas (Legacy Starter Compatibility) ---
-class IncidentBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=255)
-    description: str = Field(..., min_length=1)
-    location: str = Field(..., min_length=1, max_length=500)
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    severity: SeverityLevel = SeverityLevel.MEDIUM
-    incident_type: str = Field(..., min_length=1, max_length=100)
-    reported_by: Optional[str] = None
-
-
-class IncidentCreate(IncidentBase):
-    pass
-
-
-class IncidentUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = Field(None, min_length=1)
-    location: Optional[str] = Field(None, min_length=1, max_length=500)
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    severity: Optional[SeverityLevel] = None
-    status: Optional[IncidentStatus] = None
-    incident_type: Optional[str] = Field(None, min_length=1, max_length=100)
-    reported_by: Optional[str] = None
-
-
-class IncidentResponse(IncidentBase):
-    id: int
-    status: IncidentStatus
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)

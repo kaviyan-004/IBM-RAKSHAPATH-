@@ -1,25 +1,26 @@
 from fastapi import APIRouter
+from backend.config import settings
 
 router = APIRouter(tags=["Health"])
 
 
-@router.get("/health")
-@router.get("/api/health")
-async def health_check():
-    """Detailed health check endpoint"""
+@router.get("/")
+async def root():
     return {
-        "status": "healthy",
-        "service": "RakshaPath Road Safety AI Platform",
-        "database": "connected",
-        "api": "operational"
+        "name": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "online",
+        "database": "SQLite (road_safety.db)",
+        "docs": "/docs",
+        "redoc": "/redoc"
     }
 
 
-@router.get("/")
-async def root():
-    """Root endpoint"""
+@router.get("/health")
+async def health_check():
     return {
-        "status": "operational",
-        "service": "RakshaPath Road Safety AI Intelligence Engine",
-        "version": "1.0.0"
+        "status": "healthy",
+        "environment": settings.ENVIRONMENT,
+        "version": settings.APP_VERSION,
+        "database": "connected"
     }

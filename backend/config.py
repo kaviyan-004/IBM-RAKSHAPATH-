@@ -4,16 +4,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Application configuration settings for RakshaPath (MongoDB Edition)"""
+    """Application configuration settings for RakshaPath"""
     
     # Application
     APP_NAME: str = "RakshaPath — Road Safety AI Intelligence Engine"
     APP_VERSION: str = "1.0.0"
+    ENVIRONMENT: str = "production"
     DEBUG: bool = False
     
-    # MongoDB Configuration
-    MONGODB_URL: str = "mongodb://localhost:27017"
-    DATABASE_NAME: str = "rakshapath_db"
+    # SQLite Configuration
+    SQLITE_DATABASE_URL: str = "sqlite:///./road_safety.db"
     
     # Security
     SECRET_KEY: str = "rakshapath-safety-secret-key-production-change-me"

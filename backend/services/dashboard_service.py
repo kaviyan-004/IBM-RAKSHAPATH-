@@ -1,51 +1,30 @@
-from backend.schemas import DistrictSummaryResponse, PriorityLocationItem
+from sqlalchemy.orm import Session
+from backend.models import Corridor
+from backend.schemas import DistrictSummary, PriorityLocation
 
 
-async def get_district_summary(db) -> DistrictSummaryResponse:
-    summary = await db.district_summaries.find_one({})
-    if summary:
-        top_priorities = [
-            PriorityLocationItem(
-                location_id=item.get("location_id") or item.get("locationId"),
-                name=item["name"],
-                score=item["score"]
-            )
-            for item in summary.get("top_priority_locations", [])
-        ]
+def get_district_summary(db: Session) -> DistrictSummary:
+    corridors = db.query(Corridor).order_by(Corridor.risk_score.desc()).all()
+    total_count = len(corridors)
+    high_risk_count = sum(1 for c in corridors if c.risk_score >= 70)
+    emerging_count = sum(1 for c in corridors if c.risk_score >= 70 and c.risk_score < 80)
 
-        return DistrictSummaryResponse(
-            district=summary["district"],
-            total_locations_analyzed=summary.get("total_locations_analyzed", 12456),
-            high_risk_locations=summary.get("high_risk_locations", 348),
-            emerging_risk_locations=summary.get("emerging_risk_locations", 86),
-            interventions_pending=summary.get("interventions_pending", 16),
-            current_safety_budget=summary.get("current_safety_budget", 5000000.0),
-            last_updated=summary.get("last_updated", "2026-08-01T06:00:00Z"),
-            top_priority_locations=top_priorities,
+    top_priorities = [
+        PriorityLocation(
+            locationId=c.id,
+            name=c.corridor_name,
+            score=c.risk_score
         )
-
-    # Dynamic calculation fallback
-    total_locations = await db.locations.count_documents({})
-    high_risk_count = await db.locations.count_documents({"risk_score.level": {"$in": ["high", "critical"]}})
-    emerging_count = await db.locations.count_documents({"risk_score.is_emerging": True})
-
-    top_locations = await db.locations.find({}).sort("risk_score.score", -1).limit(5).to_list(5)
-    priorities = [
-        PriorityLocationItem(
-            location_id=loc["location_id"],
-            name=loc["name"],
-            score=loc.get("risk_score", {}).get("score", 0)
-        )
-        for loc in top_locations
+        for c in corridors[:6]
     ]
 
-    return DistrictSummaryResponse(
-        district="Coimbatore, Tamil Nadu",
-        total_locations_analyzed=total_locations or 12456,
-        high_risk_locations=high_risk_count or 348,
-        emerging_risk_locations=emerging_count or 86,
-        interventions_pending=16,
-        current_safety_budget=5000000.0,
-        last_updated="2026-08-01T06:00:00Z",
-        top_priority_locations=priorities,
+    return DistrictSummary(
+        district="National & State Highways (MoRTH & NCRB)",
+        totalLocationsAnalyzed=total_count if total_count > 0 else 68,
+        highRiskLocations=high_risk_count,
+        emergingRiskLocations=emerging_count,
+        interventionsPending=total_count * 2 if total_count > 0 else 32,
+        currentSafetyBudget=15000000.0,
+        lastUpdated="2026-09-12T21:30:00Z",
+        topPriorityLocations=top_priorities
     )

@@ -1,78 +1,88 @@
+from typing import List, Optional
 from datetime import datetime
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.database import get_database
-from backend.schemas import IncidentCreate, IncidentUpdate, IncidentResponse
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/incidents", tags=["Incidents (CRUD)"])
+from backend.database import get_db
+from backend.models import Incident
 
 
-@router.post("", response_model=IncidentResponse, status_code=status.HTTP_201_CREATED)
-async def create_incident(incident: IncidentCreate, db = Depends(get_database)):
-    """Create a new road safety incident"""
-    count = await db.incidents.count_documents({})
-    incident_dict = incident.model_dump()
-    incident_dict["id"] = count + 1
-    incident_dict["status"] = "reported"
-    incident_dict["created_at"] = datetime.utcnow()
-    incident_dict["updated_at"] = datetime.utcnow()
-    
-    await db.incidents.insert_one(incident_dict)
-    return incident_dict
+class IncidentCreate(BaseModel):
+    title: str
+    description: str
+    location: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    severity: str = "medium"
+    incident_type: str = "Vehicle Collision"
+    reported_by: Optional[str] = "Citizen"
+    corridor_id: Optional[str] = None
+
+
+class IncidentResponse(IncidentCreate):
+    id: int
+    status: str
+    created_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+router = APIRouter(prefix="/incidents", tags=["Incidents & Hazard Reports"])
 
 
 @router.get("", response_model=List[IncidentResponse])
-async def list_incidents(
-    skip: int = 0,
-    limit: int = 100,
-    db = Depends(get_database)
-):
-    """List all road safety incidents"""
-    incidents = await db.incidents.find({}).skip(skip).limit(limit).to_list(limit)
-    return incidents
-
-
-@router.get("/{incident_id}", response_model=IncidentResponse)
-async def get_incident(incident_id: int, db = Depends(get_database)):
-    """Get a specific incident by ID"""
-    incident = await db.incidents.find_one({"id": incident_id})
-    if not incident:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Incident with id {incident_id} not found"
+async def list_incidents(db: Session = Depends(get_db)):
+    incidents = db.query(Incident).all()
+    return [
+        IncidentResponse(
+            id=inc.id,
+            title=inc.title,
+            description=inc.description,
+            location=inc.location,
+            latitude=inc.latitude,
+            longitude=inc.longitude,
+            severity=inc.severity,
+            status=inc.status,
+            incident_type=inc.incident_type,
+            reported_by=inc.reported_by,
+            corridor_id=inc.corridor_id,
+            created_at=inc.created_at.isoformat() if inc.created_at else None
         )
-    return incident
+        for inc in incidents
+    ]
 
 
-@router.put("/{incident_id}", response_model=IncidentResponse)
-async def update_incident(
-    incident_id: int,
-    incident_update: IncidentUpdate,
-    db = Depends(get_database)
-):
-    """Update an existing incident"""
-    incident = await db.incidents.find_one({"id": incident_id})
-    if not incident:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Incident with id {incident_id} not found"
-        )
-    
-    update_data = incident_update.model_dump(exclude_unset=True)
-    update_data["updated_at"] = datetime.utcnow()
-    
-    await db.incidents.update_one({"id": incident_id}, {"$set": update_data})
-    updated = await db.incidents.find_one({"id": incident_id})
-    return updated
+@router.post("", response_model=IncidentResponse, status_code=status.HTTP_201_CREATED)
+async def create_incident(data: IncidentCreate, db: Session = Depends(get_db)):
+    new_inc = Incident(
+        title=data.title,
+        description=data.description,
+        location=data.location,
+        latitude=data.latitude,
+        longitude=data.longitude,
+        severity=data.severity,
+        incident_type=data.incident_type,
+        reported_by=data.reported_by,
+        corridor_id=data.corridor_id,
+        status="reported",
+    )
+    db.add(new_inc)
+    db.commit()
+    db.refresh(new_inc)
 
-
-@router.delete("/{incident_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_incident(incident_id: int, db = Depends(get_database)):
-    """Delete an incident"""
-    res = await db.incidents.delete_one({"id": incident_id})
-    if res.deleted_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Incident with id {incident_id} not found"
-        )
-    return None
+    return IncidentResponse(
+        id=new_inc.id,
+        title=new_inc.title,
+        description=new_inc.description,
+        location=new_inc.location,
+        latitude=new_inc.latitude,
+        longitude=new_inc.longitude,
+        severity=new_inc.severity,
+        status=new_inc.status,
+        incident_type=new_inc.incident_type,
+        reported_by=new_inc.reported_by,
+        corridor_id=new_inc.corridor_id,
+        created_at=new_inc.created_at.isoformat() if new_inc.created_at else None
+    )

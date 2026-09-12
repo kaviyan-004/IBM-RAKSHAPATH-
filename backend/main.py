@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
-from backend.database import connect_to_mongo, close_mongo_connection
+from backend.database import init_db
 from backend.routers import (
     health,
     auth,
@@ -21,6 +21,7 @@ from backend.routers import (
     alerts,
     reports,
     incidents,
+    train,
 )
 
 logging.basicConfig(
@@ -32,18 +33,17 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager: MongoDB connection & teardown"""
-    logger.info("Initializing RakshaPath Road Safety AI Platform (MongoDB Edition)...")
-    await connect_to_mongo()
+    """Application lifespan manager: SQLite database initialization & dataset auto-seed"""
+    logger.info("Initializing RakshaPath Road Safety AI Decision Intelligence Platform...")
+    init_db()
     logger.info("RakshaPath Backend is ready to serve requests.")
     yield
-    await close_mongo_connection()
     logger.info("Shutting down RakshaPath Backend.")
 
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="AI-powered road accident prediction, explainability, simulation, and budget optimization platform powered by MongoDB.",
+    description="AI-powered road accident prediction, explainability, simulation, and budget optimization platform powered by MoRTH and NCRB machine learning models.",
     version=settings.APP_VERSION,
     lifespan=lifespan,
 )
@@ -76,6 +76,7 @@ api_routers = [
     alerts.router,
     reports.router,
     incidents.router,
+    train.router,
 ]
 
 for router in api_routers:

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends
-from backend.database import get_database
-from backend.schemas import RiskForecastResponse
-from backend.services.prediction_service import get_risk_forecast
+from sqlalchemy.orm import Session
+from backend.database import get_db
+from backend.schemas import RiskForecast
+from backend.services import prediction_service
 
-router = APIRouter(prefix="/prediction", tags=["Predictive Intelligence"])
+router = APIRouter(prefix="/prediction", tags=["Predictive Forecasting"])
 
 
-@router.get("/{location_id}", response_model=RiskForecastResponse)
-async def get_prediction(location_id: str, db = Depends(get_database)):
-    """Retrieve multi-year forward risk forecast with lower and upper uncertainty intervals"""
-    return await get_risk_forecast(db, location_id)
+@router.get("/{location_id}", response_model=RiskForecast)
+async def get_risk_forecast(location_id: str, db: Session = Depends(get_db)):
+    return prediction_service.get_forecast_analysis(db, location_id)
