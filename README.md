@@ -1,201 +1,98 @@
-# Road Safety AI System
+# RakshaPath
 
-AI-powered road accident prediction and prevention platform designed to create a future where road accidents become predictable and preventable events through comprehensive AI-powered safety ecosystem.
+**AI-Powered Road Safety Decision-Intelligence Platform**
+*Predict • Understand • Intervene • Simulate • Save Lives*
 
-## Product Vision
+RakshaPath turns historical road-accident data into an actionable authority workflow: an interactive risk map, a normalized 0–100 risk score, cause analysis, future-risk prediction, cause-linked intervention recommendations, what-if impact simulation, and a budget-constrained portfolio optimizer. Built for IBM BOB National Hackathon — Problem Statement #3 (Transport: RoadSafe India).
 
-Create a future where road accidents become predictable and preventable events through comprehensive AI-powered safety ecosystem that protects every road user globally.
+Full product/technical background lives in [`docs/`](docs/):
 
-## Target Audience
+- [`docs/PRD.md`](docs/PRD.md) — product requirements
+- [`docs/APP_FLOW.md`](docs/APP_FLOW.md) — screen-by-screen application flow
+- [`docs/TECH_STACK.md`](docs/TECH_STACK.md) — architecture & technology choices
+- [`docs/BACKEND_SCHEMA.md`](docs/BACKEND_SCHEMA.md) — database schema & REST API spec
+- [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — end-to-end build flow and current status
+- [`docs/UI_DESIGN.md`](docs/UI_DESIGN.md) — the 12-screen UI design and its mapping to the frontend
 
-- Transportation authorities
-- Traffic safety engineers
-- Urban planners
-- Insurance companies
-- Emergency services seeking data-driven road safety solutions
+## Repository Structure
 
-## Core Features
-
-- **Incident Management**: Complete CRUD operations for road safety incidents
-- **Real-time Tracking**: Monitor and track road safety incidents with location data
-- **Severity Classification**: Categorize incidents by severity levels (low, medium, high, critical)
-- **Status Management**: Track incident lifecycle from reported to resolved
-
-## Technology Stack
-
-- **Backend**: FastAPI (Python)
-- **Database**: SQLAlchemy ORM with SQLite (easily switchable to PostgreSQL/MySQL)
-- **API**: RESTful API with automatic OpenAPI documentation
-- **Validation**: Pydantic for data validation
-
-## Architecture
-
-Modular Monolith architecture with clear separation of concerns:
-- `backend/main.py` - Application entry point
-- `backend/models.py` - Database models
-- `backend/schemas.py` - Pydantic schemas for validation
-- `backend/routers/` - API route handlers
-- `backend/config.py` - Configuration management
-- `backend/database.py` - Database connection and session management
-
-## Prerequisites
-
-- Python 3.9 or higher
-- pip (Python package manager)
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd <project-directory>
+```
+RakshaPath075/
+├── frontend/     # React + Vite + TypeScript app (all UI code)
+├── backend/      # FastAPI service (all API/data/model code)
+├── docs/         # Product & technical documentation
+└── README.md
 ```
 
-2. Create a virtual environment:
+Frontend and backend are independently runnable and communicate only over HTTP. Neither imports the other's source code.
+
+## Frontend
+
+Stack: React 18 + Vite + TypeScript, Tailwind CSS, React Router, `react-leaflet` (risk map), Recharts (trend/impact charts), `lucide-react` icons.
+
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+cd frontend
+npm install
+npm run dev       # http://localhost:5173
 ```
 
-3. Install dependencies:
+The frontend currently runs against **mock data** so every one of the 12 designed screens (login, dashboard, risk map, location intelligence, interventions, impact simulator, budget optimizer, reports, alerts, profile/settings — see `docs/UI_DESIGN.md`) is fully interactive without a backend. All data access goes through `frontend/src/api/*`, which either serves `frontend/src/data/mock/*` or calls the real backend, controlled by `frontend/.env`:
+
 ```bash
-pip install -r backend/requirements.txt
+cp frontend/.env.example frontend/.env
+# VITE_USE_MOCK=true   -> use bundled mock data (default, no backend needed)
+# VITE_USE_MOCK=false  -> call VITE_API_BASE_URL per docs/BACKEND_SCHEMA.md
 ```
 
-4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env file with your configuration
+Because every page consumes data exclusively through that API layer, plugging in the real backend later requires no UI rewrite.
+
+Frontend source layout:
+
+```
+frontend/src/
+├── api/          # one module per backend domain (locations, risk, causes, prediction,
+│                    interventions, simulation, budget, reports, alerts, auth, dashboard)
+├── components/   # shared UI (Sidebar, Topbar, RiskBadge, InterventionCard, ...)
+├── charts/       # Recharts wrappers (trend line, impact bars, risk gauge)
+├── map/          # Leaflet risk map
+├── data/mock/    # mock dataset standing in for the backend (see Mock Data Rule below)
+├── hooks/        # useAuth, useAsync, useLocationsWithRisk, useLocationDetail, useAlerts
+├── layouts/      # AppLayout (sidebar+topbar shell), AuthLayout (login/signup)
+├── pages/        # one component per screen in docs/UI_DESIGN.md
+├── routes/       # route table
+├── services/     # low-level HTTP client + mock/real switch
+├── types/        # shared TypeScript types mirroring docs/BACKEND_SCHEMA.md
+└── utils/        # risk-level formatting, knapsack optimizer, counterfactual simulation math
 ```
 
-## Running Locally
+## Backend
 
-1. Activate virtual environment (if not already activated):
-```bash
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+The backend currently checked in under `/backend` is a minimal FastAPI + SQLAlchemy starter (generic "incidents" CRUD) — it predates the RakshaPath risk/cause/prediction/intervention/simulation/optimization design in `docs/BACKEND_SCHEMA.md` and has intentionally **not** been rewritten wholesale; the routes, models and services described there are the target for the next backend milestone.
 
-2. Start the development server:
 ```bash
 cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-3. Access the application:
 - API: http://localhost:8000
-- Interactive API Documentation: http://localhost:8000/docs
-- Alternative API Documentation: http://localhost:8000/redoc
+- Interactive docs: http://localhost:8000/docs
 
-## API Endpoints
+### Current backend endpoints (starter)
 
-### Health Check
-- `GET /` - Root endpoint with service status
-- `GET /health` - Detailed health check
+- `GET /` / `GET /health` — service status
+- `POST /api/v1/incidents`, `GET /api/v1/incidents`, `GET /api/v1/incidents/{id}`, `PUT /api/v1/incidents/{id}`, `DELETE /api/v1/incidents/{id}`
 
-### Incidents
-- `POST /api/v1/incidents` - Create a new incident
-- `GET /api/v1/incidents` - List all incidents (with pagination)
-- `GET /api/v1/incidents/{incident_id}` - Get specific incident
-- `PUT /api/v1/incidents/{incident_id}` - Update an incident
-- `DELETE /api/v1/incidents/{incident_id}` - Delete an incident
+### Target backend endpoints (see `docs/BACKEND_SCHEMA.md`)
 
-### Example Request
+`GET /api/risk/map`, `GET /api/risk/{location_id}`, `GET /api/causes/{location_id}`, `GET /api/causes/{location_id}/shap`, `GET /api/interventions/{location_id}/top`, `POST /api/simulation`, `POST /api/optimize`, `GET /api/report/{location_id}/pdf`, plus vulnerability/temporal/prediction/dashboard/alerts/auth endpoints the frontend already expects.
 
-Create an incident:
-```bash
-curl -X POST "http://localhost:8000/api/v1/incidents" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Traffic Accident on Highway 101",
-    "description": "Multi-vehicle collision during rush hour",
-    "location": "Highway 101, Mile Marker 45",
-    "latitude": 37.7749,
-    "longitude": -122.4194,
-    "severity": "high",
-    "incident_type": "collision",
-    "reported_by": "Traffic Control Center"
-  }'
-```
+Environment variables (`backend/.env`, see `.env.example`): `DATABASE_URL`, `SECRET_KEY`, `ALLOWED_ORIGINS`, `DEBUG`. Defaults to SQLite; swap in PostgreSQL + PostGIS per `docs/BACKEND_SCHEMA.md` when implementing the real risk/ML pipeline.
 
-## Environment Variables
+## Development Notes
 
-Key environment variables (see `.env.example` for full list):
-
-- `DATABASE_URL` - Database connection string
-- `SECRET_KEY` - Secret key for JWT tokens (change in production!)
-- `ALLOWED_ORIGINS` - CORS allowed origins
-- `DEBUG` - Enable/disable debug mode
-
-## Database
-
-The application uses SQLite by default for easy setup. To use PostgreSQL or MySQL:
-
-1. Update `DATABASE_URL` in `.env`:
-```
-# PostgreSQL
-DATABASE_URL=postgresql://user:password@localhost/road_safety
-
-# MySQL
-DATABASE_URL=mysql://user:password@localhost/road_safety
-```
-
-2. Install appropriate database driver:
-```bash
-pip install psycopg2-binary  # For PostgreSQL
-# or
-pip install pymysql  # For MySQL
-```
-
-## Development
-
-### Project Structure
-```
-.
-├── backend/
-│   ├── __init__.py
-│   ├── main.py              # Application entry point
-│   ├── config.py            # Configuration settings
-│   ├── database.py          # Database setup
-│   ├── models.py            # SQLAlchemy models
-│   ├── schemas.py           # Pydantic schemas
-│   ├── requirements.txt     # Python dependencies
-│   └── routers/
-│       ├── __init__.py
-│       └── incidents.py     # Incident endpoints
-├── .env.example             # Environment variables template
-└── README.md               # This file
-```
-
-### Code Quality
-
-The codebase follows:
-- PEP 8 style guidelines
-- Type hints for better code clarity
-- Comprehensive error handling
-- Input validation using Pydantic
-- Proper logging for debugging
-
-## Security
-
-- Environment variables for sensitive data
-- Input validation on all endpoints
-- CORS configuration for API security
-- SQL injection prevention through ORM
-- Password hashing ready (for future authentication)
-
-## Future Enhancements
-
-- User authentication and authorization
-- AI-powered accident prediction models
-- Real-time data analytics dashboard
-- Integration with traffic management systems
-- Mobile application support
-- Advanced geospatial analysis
-
-## License
-
-[Your License Here]
-
-## Support
-
-For issues and questions, please contact the development team or create an issue in the repository.
+- Frontend and backend each keep their own dependency manifest (`frontend/package.json`, `backend/requirements.txt`) and their own `.env`. Never commit either `.env` file.
+- Mock data lives only in `frontend/src/data/mock/` and is consumed through the same `frontend/src/api/*` abstraction the real backend will use — UI components never import mock data directly.
+- Model-honesty rules from the PRD apply throughout the UI: cause analysis is always labeled as model association (not causation), simulation/impact numbers always show a confidence level and uncertainty range, and nothing is presented as a guaranteed real-world outcome.
