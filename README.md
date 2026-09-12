@@ -65,31 +65,42 @@ frontend/src/
 └── utils/        # risk-level formatting, knapsack optimizer, counterfactual simulation math
 ```
 
-## Backend
+## Backend (MongoDB Edition)
 
-The backend currently checked in under `/backend` is a minimal FastAPI + SQLAlchemy starter (generic "incidents" CRUD) — it predates the RakshaPath risk/cause/prediction/intervention/simulation/optimization design in `docs/BACKEND_SCHEMA.md` and has intentionally **not** been rewritten wholesale; the routes, models and services described there are the target for the next backend milestone.
+The backend under `/backend` is a production-grade FastAPI service using **MongoDB** (`motor` async driver) implementing the complete RakshaPath architecture described in [`docs/BACKEND_SCHEMA.md`](docs/BACKEND_SCHEMA.md) and [`docs/APP_FLOW.md`](docs/APP_FLOW.md).
 
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 - API: http://localhost:8000
-- Interactive docs: http://localhost:8000/docs
+- Interactive Swagger docs: http://localhost:8000/docs
+- Run automated MongoDB test suite: `python -m pytest backend/test_backend.py`
 
-### Current backend endpoints (starter)
+### MongoDB Collections Architecture
 
-- `GET /` / `GET /health` — service status
-- `POST /api/v1/incidents`, `GET /api/v1/incidents`, `GET /api/v1/incidents/{id}`, `PUT /api/v1/incidents/{id}`, `DELETE /api/v1/incidents/{id}`
+| Collection | Schema / Features |
+|---|---|
+| `locations` | Embedded documents containing coordinates (`geometry` 2dsphere index), `risk_score` (0–100), `cause_fingerprint` (SHAP factors), `vulnerability` (groups), `temporal` (hourly/day distributions), and `forecast` (multi-year series with uncertainty bounds). |
+| `interventions` | Catalog of countermeasures with min/max costs, expected effect ranges, and confidence levels. |
+| `users` | Authority official credentials with SHA-256 salted hashing and JWT tokens. |
+| `alerts` | High-risk and emerging risk notifications. |
+| `reports` | Generated authority decision reports & metadata. |
+| `district_summaries` | District-wide KPI rollups and priority corridors. |
+| `incidents` | Incident management CRUD records. |
 
-### Target backend endpoints (see `docs/BACKEND_SCHEMA.md`)
-
-`GET /api/risk/map`, `GET /api/risk/{location_id}`, `GET /api/causes/{location_id}`, `GET /api/causes/{location_id}/shap`, `GET /api/interventions/{location_id}/top`, `POST /api/simulation`, `POST /api/optimize`, `GET /api/report/{location_id}/pdf`, plus vulnerability/temporal/prediction/dashboard/alerts/auth endpoints the frontend already expects.
-
-Environment variables (`backend/.env`, see `.env.example`): `DATABASE_URL`, `SECRET_KEY`, `ALLOWED_ORIGINS`, `DEBUG`. Defaults to SQLite; swap in PostgreSQL + PostGIS per `docs/BACKEND_SCHEMA.md` when implementing the real risk/ML pipeline.
+Environment variables (`backend/.env`, see `.env.example`):
+```env
+MONGODB_URL=mongodb://localhost:27017
+DATABASE_NAME=rakshapath_db
+SECRET_KEY=rakshapath-safety-secret-key-production-change-me
+ALLOWED_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost:8000"]
+```
+*(Supports local MongoDB Community Server on port 27017 or remote MongoDB Atlas connection strings; includes an automatic in-memory collection cache if no local daemon is running).*
 
 ## Development Notes
 

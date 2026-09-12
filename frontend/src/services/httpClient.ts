@@ -8,7 +8,14 @@ export const USE_MOCK = (import.meta.env.VITE_USE_MOCK ?? "true") !== "false";
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`);
   if (!res.ok) {
-    throw new Error(`GET ${path} failed with ${res.status}`);
+    let errorDetail = `GET ${path} failed with ${res.status}`;
+    try {
+      const errJson = await res.json();
+      if (errJson?.detail) errorDetail = errJson.detail;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorDetail);
   }
   return res.json() as Promise<T>;
 }
@@ -20,7 +27,14 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    throw new Error(`POST ${path} failed with ${res.status}`);
+    let errorDetail = `POST ${path} failed with ${res.status}`;
+    try {
+      const errJson = await res.json();
+      if (errJson?.detail) errorDetail = errJson.detail;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorDetail);
   }
   return res.json() as Promise<T>;
 }

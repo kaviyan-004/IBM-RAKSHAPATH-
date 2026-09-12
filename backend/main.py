@@ -1,32 +1,54 @@
+import logging
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import logging
 
 from backend.config import settings
-from backend.routers import incidents
-from backend.database import engine, Base
+from backend.database import connect_to_mongo, close_mongo_connection
+from backend.routers import (
+    health,
+    auth,
+    locations,
+    risk,
+    causes,
+    vulnerability,
+    temporal,
+    prediction,
+    interventions,
+    simulation,
+    optimize,
+    dashboard,
+    alerts,
+    reports,
+    incidents,
+)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan events"""
-    logger.info("Starting Road Safety AI System")
-    Base.metadata.create_all(bind=engine)
+    """Application lifespan manager: MongoDB connection & teardown"""
+    logger.info("Initializing RakshaPath Road Safety AI Platform (MongoDB Edition)...")
+    await connect_to_mongo()
+    logger.info("RakshaPath Backend is ready to serve requests.")
     yield
-    logger.info("Shutting down Road Safety AI System")
+    await close_mongo_connection()
+    logger.info("Shutting down RakshaPath Backend.")
 
 
 app = FastAPI(
-    title="Road Safety AI System",
-    description="AI-powered road accident prediction and prevention platform",
-    version="1.0.0",
-    lifespan=lifespan
+    title=settings.APP_NAME,
+    description="AI-powered road accident prediction, explainability, simulation, and budget optimization platform powered by MongoDB.",
+    version=settings.APP_VERSION,
+    lifespan=lifespan,
 )
 
+# Configure CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -35,24 +57,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(incidents.router, prefix="/api/v1", tags=["incidents"])
+# Root and Health check
+app.include_router(health.router)
 
+# Mount all modules under /api and /api/v1
+api_routers = [
+    auth.router,
+    locations.router,
+    risk.router,
+    causes.router,
+    vulnerability.router,
+    temporal.router,
+    prediction.router,
+    interventions.router,
+    simulation.router,
+    optimize.router,
+    dashboard.router,
+    alerts.router,
+    reports.router,
+    incidents.router,
+]
 
-@app.get("/")
-async def root():
-    """Health check endpoint"""
-    return {
-        "status": "operational",
-        "service": "Road Safety AI System",
-        "version": "1.0.0"
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Detailed health check"""
-    return {
-        "status": "healthy",
-        "database": "connected",
-        "api": "operational"
-    }
+for router in api_routers:
+    app.include_router(router, prefix=settings.API_PREFIX)
+    app.include_router(router, prefix=settings.API_V1_PREFIX)

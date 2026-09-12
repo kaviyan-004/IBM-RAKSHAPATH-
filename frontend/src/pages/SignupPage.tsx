@@ -21,15 +21,27 @@ export default function SignupPage() {
     }
     setError("");
     setLoading(true);
-    await signup({ fullName, email, password });
-    setLoading(false);
-    navigate("/");
+    try {
+      await signup({ fullName, email, password });
+      navigate("/");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create account. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Create Your Account</h1>
       <p className="mt-1 text-sm text-slate-500">Join RakshaPath and make roads safer.</p>
+
+      {error && (
+        <div className="mt-4 rounded-lg bg-red-50 p-3 text-xs font-medium text-red-700 border border-red-200">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
         <div>
@@ -38,7 +50,7 @@ export default function SignupPage() {
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="John Doe"
+            placeholder="Kavitha Raman"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
           />
         </div>
@@ -49,7 +61,7 @@ export default function SignupPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@department.gov.in"
+            placeholder="kavitha.raman@tn.gov.in"
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
           />
         </div>
@@ -75,7 +87,6 @@ export default function SignupPage() {
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
           />
         </div>
-        {error && <p className="text-xs font-medium text-red-600">{error}</p>}
         <label className="flex items-center gap-2 text-xs text-slate-500">
           <input type="checkbox" required checked={agree} onChange={(e) => setAgree(e.target.checked)} className="h-3.5 w-3.5 accent-brand-600" />
           I agree to the Terms & Conditions

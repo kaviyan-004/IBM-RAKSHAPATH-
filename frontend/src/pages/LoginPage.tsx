@@ -6,21 +6,35 @@ export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("t.selvam@arcas.ac.in");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("password123");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    await login({ email, password });
-    setLoading(false);
-    navigate("/");
+    try {
+      await login({ email, password });
+      navigate("/");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Welcome Back!</h1>
-      <p className="mt-1 text-sm text-slate-500">Sign in to your account</p>
+      <p className="mt-1 text-sm text-slate-500">Sign in to your RakshaPath account</p>
+
+      {error && (
+        <div className="mt-4 rounded-lg bg-red-50 p-3 text-xs font-medium text-red-700 border border-red-200">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
@@ -37,7 +51,7 @@ export default function LoginPage() {
         <div>
           <div className="mb-1 flex items-center justify-between">
             <label className="block text-sm font-medium text-slate-700">Password</label>
-            <a className="text-xs text-brand-600 hover:underline">Forgot password?</a>
+            <span className="text-xs text-slate-400">Demo password: password123</span>
           </div>
           <input
             type="password"

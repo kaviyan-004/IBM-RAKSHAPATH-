@@ -1,8 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Enum
-from datetime import datetime
 import enum
-
-from backend.database import Base
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field
 
 
 class SeverityLevel(str, enum.Enum):
@@ -21,22 +19,47 @@ class IncidentStatus(str, enum.Enum):
     CLOSED = "closed"
 
 
-class Incident(Base):
-    """Road safety incident model"""
-    __tablename__ = "incidents"
+# Typed MongoDB Document Structures
+class MongoLocationDocument(BaseModel):
+    location_id: str
+    name: str
+    state: str = "Tamil Nadu"
+    district: str = "Coimbatore"
+    latitude: float
+    longitude: float
+    geometry: Optional[Dict[str, Any]] = None  # GeoJSON: { "type": "Point", "coordinates": [lng, lat] }
+    road_type: str
+    area_type: str
+    risk_score: Optional[Dict[str, Any]] = None
+    cause_fingerprint: Optional[Dict[str, Any]] = None
+    vulnerability: Optional[Dict[str, Any]] = None
+    temporal: Optional[Dict[str, Any]] = None
+    forecast: Optional[Dict[str, Any]] = None
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=False)
-    location = Column(String(500), nullable=False)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
-    severity = Column(Enum(SeverityLevel), default=SeverityLevel.MEDIUM)
-    status = Column(Enum(IncidentStatus), default=IncidentStatus.REPORTED)
-    incident_type = Column(String(100), nullable=False)
-    reported_by = Column(String(255), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def __repr__(self):
-        return f"<Incident {self.id}: {self.title}>"
+class MongoUserDocument(BaseModel):
+    email: str
+    name: str
+    initials: str
+    hashed_password: str
+    role: str = "Government Official"
+    organization: str = "Municipal Corporation"
+    location: str = "Coimbatore, Tamil Nadu"
+    is_active: bool = True
+
+
+class MongoInterventionDocument(BaseModel):
+    intervention_id: str
+    location_id: str
+    name: str
+    target_cause: str
+    cause_match: float
+    context_match: float
+    suitable_context: str
+    estimated_cost_min: float
+    estimated_cost_max: float
+    expected_effect_min: float
+    expected_effect_max: float
+    confidence: str
+    evidence_source: str
+    implementation_constraints: str
