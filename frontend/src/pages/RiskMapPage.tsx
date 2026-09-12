@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocationsWithRisk } from "@/hooks/useLocationsWithRisk";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import RiskMap from "@/map/RiskMap";
 import Loader from "@/components/Loader";
 import RiskBadge from "@/components/RiskBadge";
@@ -9,8 +10,10 @@ import type { RiskLevel } from "@/types";
 
 const LEVEL_FILTERS: (RiskLevel | "all")[] = ["all", "critical", "high", "moderate", "low"];
 
+/** Reused as Government's Risk Map, Technical's GIS Risk Map, and Public's Safety Map. */
 export default function RiskMapPage() {
   const { locations, loading } = useLocationsWithRisk();
+  const { locations: locationsBasePath } = useSectorBasePaths();
   const [levelFilter, setLevelFilter] = useState<RiskLevel | "all">("all");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | undefined>();
@@ -74,12 +77,14 @@ export default function RiskMapPage() {
               )}
               <p className="mt-3 text-xs text-slate-500">Peak risk window</p>
               <p className="text-sm font-medium text-slate-800">{selected.risk.peakRiskWindow}</p>
-              <button
-                onClick={() => navigate(`/locations/${selected.locationId}`)}
-                className="mt-4 w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-              >
-                View Details
-              </button>
+              {locationsBasePath && (
+                <button
+                  onClick={() => navigate(`${locationsBasePath}/${selected.locationId}`)}
+                  className="mt-4 w-full rounded-lg bg-brand-600 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+                >
+                  View Details
+                </button>
+              )}
             </div>
           ) : (
             <p className="text-sm text-slate-400">Select a location on the map to see its risk summary.</p>

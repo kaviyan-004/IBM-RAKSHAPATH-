@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useLocationDetail } from "@/hooks/useLocationDetail";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import { runSimulation } from "@/api/simulation";
 import Loader from "@/components/Loader";
 import ConfidenceBadge from "@/components/ConfidenceBadge";
@@ -12,6 +13,7 @@ export default function ImpactSimulatorPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { data, loading } = useLocationDetail(id);
+  const { locations: basePath } = useSectorBasePaths();
   const [selected, setSelected] = useState<string[]>([]);
   const [individualResults, setIndividualResults] = useState<SimulationResult[]>([]);
   const [combinedResult, setCombinedResult] = useState<SimulationResult | undefined>();
@@ -59,7 +61,7 @@ export default function ImpactSimulatorPage() {
 
   return (
     <div className="space-y-4">
-      <Link to={`/locations/${id}/interventions`} className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
+      <Link to={`${basePath}/${id}/interventions`} className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
         <ArrowLeft size={14} /> Back to Interventions
       </Link>
 

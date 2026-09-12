@@ -23,7 +23,10 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup({ fullName, email, password });
-      navigate("/");
+      // "/" and every other authenticated route now require a sector
+      // (chosen at login), which signup doesn't collect — send the new
+      // account to Login to complete that step rather than a guarded route.
+      navigate("/login");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to create account. Please try again.";
       setError(message);

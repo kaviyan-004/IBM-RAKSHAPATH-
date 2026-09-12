@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import { Wrench } from "lucide-react";
 import { useLocationsWithRisk } from "@/hooks/useLocationsWithRisk";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import Loader from "@/components/Loader";
 import RiskBadge from "@/components/RiskBadge";
 
+/** Reused as Government's Interventions hub and Technical's Intervention Analysis hub. */
 export default function InterventionsHubPage() {
   const { locations, loading } = useLocationsWithRisk();
+  const { locations: basePath } = useSectorBasePaths();
 
   if (loading) return <Loader label="Loading locations..." />;
 
@@ -20,7 +23,7 @@ export default function InterventionsHubPage() {
         {locations.map((loc) => (
           <Link
             key={loc.locationId}
-            to={`/locations/${loc.locationId}/interventions`}
+            to={`${basePath}/${loc.locationId}/interventions`}
             className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-brand-300 hover:shadow-md"
           >
             <div>

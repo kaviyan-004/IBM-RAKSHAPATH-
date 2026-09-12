@@ -1,3 +1,5 @@
+export type Sector = "government" | "technical" | "public";
+
 export type RiskLevel = "low" | "moderate" | "high" | "critical";
 
 export type TrendDirection = "increasing" | "decreasing" | "stable";

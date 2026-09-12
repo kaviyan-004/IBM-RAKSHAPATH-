@@ -4,9 +4,12 @@ import Topbar from "@/components/Topbar";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function AppLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, sector } = useAuth();
 
-  if (!isAuthenticated) {
+  // A sector is required to resolve navigation/route access, so an
+  // authenticated session missing one (e.g. a pre-sector-feature session)
+  // is treated the same as being signed out.
+  if (!isAuthenticated || !sector) {
     return <Navigate to="/login" replace />;
   }
 

@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocationsWithRisk } from "@/hooks/useLocationsWithRisk";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import Loader from "@/components/Loader";
 import RiskBadge from "@/components/RiskBadge";
 
+/** Reused as Government's Locations and Technical's Location Diagnostics. */
 export default function LocationsListPage() {
   const { locations, loading } = useLocationsWithRisk();
+  const { locations: basePath } = useSectorBasePaths();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
@@ -40,7 +43,7 @@ export default function LocationsListPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.map((loc) => (
-              <tr key={loc.locationId} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/locations/${loc.locationId}`)}>
+              <tr key={loc.locationId} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`${basePath}/${loc.locationId}`)}>
                 <td className="px-4 py-3">
                   <p className="font-medium text-slate-900">{loc.name}</p>
                   <p className="text-xs text-slate-400">

@@ -4,18 +4,21 @@ import { FileText } from "lucide-react";
 import { useAsync } from "@/hooks/useAsync";
 import { fetchReports } from "@/api/reports";
 import { useLocationsWithRisk } from "@/hooks/useLocationsWithRisk";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import Loader from "@/components/Loader";
 import { formatDate } from "@/utils/format";
 
+/** Reused as Government's Reports and Technical's Technical Reports. */
 export default function ReportsPage() {
   const { data: reports, loading } = useAsync(fetchReports, []);
   const { locations } = useLocationsWithRisk();
+  const { reports: basePath } = useSectorBasePaths();
   const [locationId, setLocationId] = useState("");
   const navigate = useNavigate();
 
   const generate = () => {
-    if (!locationId) return;
-    navigate(`/reports/${locationId}`);
+    if (!locationId || !basePath) return;
+    navigate(`${basePath}/${locationId}`);
   };
 
   return (
@@ -67,7 +70,7 @@ export default function ReportsPage() {
                     <p className="text-xs text-slate-400">Generated on {formatDate(r.generatedAt)}</p>
                   </div>
                 </div>
-                <Link to={r.locationId ? `/reports/${r.locationId}` : "#"} className="text-xs font-semibold text-brand-600 hover:underline">
+                <Link to={r.locationId && basePath ? `${basePath}/${r.locationId}` : "#"} className="text-xs font-semibold text-brand-600 hover:underline">
                   View
                 </Link>
               </li>

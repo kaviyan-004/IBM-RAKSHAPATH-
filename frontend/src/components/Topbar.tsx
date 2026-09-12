@@ -5,8 +5,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Topbar() {
   const { unreadCount } = useAlerts();
-  const { user } = useAuth();
+  const { user, sector } = useAuth();
   const navigate = useNavigate();
+
+  // Technical has no Alerts/Settings-equivalent page in its nav matrix, so
+  // those topbar actions are hidden rather than pointing at a route that
+  // sector isn't allowed to visit.
+  const alertsPath = sector === "public" ? "/risk-alerts" : sector === "technical" ? undefined : "/alerts";
+  const profilePath = sector === "public" ? "/profile" : sector === "technical" ? undefined : "/settings";
 
   return (
     <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 sm:px-6">
@@ -21,20 +27,31 @@ export default function Topbar() {
         />
       </div>
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate("/alerts")} className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Notifications">
-          <Bell size={18} />
-          {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-              {unreadCount}
+        {alertsPath && (
+          <button onClick={() => navigate(alertsPath)} className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Notifications">
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+        )}
+        {profilePath ? (
+          <Link to={profilePath} className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
+              {user?.initials ?? "T.S"}
             </span>
-          )}
-        </button>
-        <Link to="/settings" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
-            {user?.initials ?? "T.S"}
+            <span className="hidden text-sm font-medium text-slate-700 sm:block">{user?.name ?? "Govt. Official"}</span>
+          </Link>
+        ) : (
+          <span className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
+              {user?.initials ?? "T.S"}
+            </span>
+            <span className="hidden text-sm font-medium text-slate-700 sm:block">{user?.name ?? "Govt. Official"}</span>
           </span>
-          <span className="hidden text-sm font-medium text-slate-700 sm:block">{user?.name ?? "Govt. Official"}</span>
-        </Link>
+        )}
       </div>
     </header>
   );

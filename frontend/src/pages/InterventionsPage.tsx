@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useLocationDetail } from "@/hooks/useLocationDetail";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import Loader from "@/components/Loader";
 import InterventionCard from "@/components/InterventionCard";
 import RiskBadge from "@/components/RiskBadge";
@@ -9,6 +10,7 @@ import RiskBadge from "@/components/RiskBadge";
 export default function InterventionsPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading } = useLocationDetail(id);
+  const { locations: basePath } = useSectorBasePaths();
   const [selected, setSelected] = useState<string[]>([]);
   const navigate = useNavigate();
 
@@ -22,12 +24,12 @@ export default function InterventionsPage() {
 
   const goToSimulator = () => {
     const query = selected.length > 0 ? `?ids=${selected.join(",")}` : "";
-    navigate(`/locations/${id}/simulator${query}`);
+    navigate(`${basePath}/${id}/simulator${query}`);
   };
 
   return (
     <div className="space-y-4">
-      <Link to={`/locations/${id}`} className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
+      <Link to={`${basePath}/${id}`} className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
         <ArrowLeft size={14} /> Back to {location.name}
       </Link>
 

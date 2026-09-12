@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useLocationDetail } from "@/hooks/useLocationDetail";
+import { useSectorBasePaths } from "@/navigation/useSectorBasePaths";
 import Loader from "@/components/Loader";
 import RiskBadge from "@/components/RiskBadge";
 import RiskGauge from "@/charts/RiskGauge";
@@ -20,6 +21,7 @@ const TABS: { key: TabKey; label: string }[] = [
 export default function LocationIntelligencePage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading } = useLocationDetail(id);
+  const { locations: basePath, riskMap } = useSectorBasePaths();
   const [tab, setTab] = useState<TabKey>("overview");
   const navigate = useNavigate();
 
@@ -29,7 +31,7 @@ export default function LocationIntelligencePage() {
 
   return (
     <div className="space-y-4">
-      <Link to="/risk-map" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
+      <Link to={riskMap} className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
         <ArrowLeft size={14} /> Back to Map
       </Link>
 
@@ -48,13 +50,13 @@ export default function LocationIntelligencePage() {
           <RiskGauge score={risk.score} />
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => navigate(`/locations/${id}/interventions`)}
+              onClick={() => navigate(`${basePath}/${id}/interventions`)}
               className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-700"
             >
               View Interventions
             </button>
             <button
-              onClick={() => navigate(`/locations/${id}/simulator`)}
+              onClick={() => navigate(`${basePath}/${id}/simulator`)}
               className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
             >
               What-If Simulator
