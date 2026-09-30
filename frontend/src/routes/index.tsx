@@ -19,6 +19,9 @@ import AlertsPage from "@/pages/AlertsPage";
 import MLTrainingPage from "@/pages/MLTrainingPage";
 import ProfileSettingsPage from "@/pages/ProfileSettingsPage";
 import PublicHomePage from "@/pages/PublicHomePage";
+import ReportHazardPage from "@/pages/ReportHazardPage";
+import SaferRoutesPage from "@/pages/SaferRoutesPage";
+import SafetyUpdatesPage from "@/pages/SafetyUpdatesPage";
 import SectorPlaceholderPage from "@/pages/SectorPlaceholderPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 
@@ -100,36 +103,9 @@ export default function AppRoutes() {
           <Route path="/home" element={<PublicHomePage />} />
           <Route path="/safety-map" element={<RiskMapPage />} />
           <Route path="/risk-alerts" element={<AlertsPage />} />
-          <Route
-            path="/safer-routes"
-            element={
-              <SectorPlaceholderPage
-                title="Safer Routes"
-                description="Route suggestions that favor lower-risk roads are planned here, based on the same risk model used across RakshaPath."
-                icon={RouteIcon}
-              />
-            }
-          />
-          <Route
-            path="/report-hazard"
-            element={
-              <SectorPlaceholderPage
-                title="Report a Hazard"
-                description="A simple form for citizens to flag a road hazard with a location and photo is planned here."
-                icon={Flag}
-              />
-            }
-          />
-          <Route
-            path="/safety-updates"
-            element={
-              <SectorPlaceholderPage
-                title="Safety Updates"
-                description="District-level safety announcements and completed-intervention updates are planned here."
-                icon={Megaphone}
-              />
-            }
-          />
+          <Route path="/safer-routes" element={<SaferRoutesPage />} />
+          <Route path="/report-hazard" element={<ReportHazardPage />} />
+          <Route path="/safety-updates" element={<SafetyUpdatesPage />} />
           <Route path="/profile" element={<ProfileSettingsPage />} />
         </Route>
       </Route>

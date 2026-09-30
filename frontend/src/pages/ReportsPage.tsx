@@ -60,14 +60,14 @@ export default function ReportsPage() {
         ) : (
           <ul className="divide-y divide-slate-100">
             {reports?.map((r) => (
-              <li key={r.reportId} className="flex items-center justify-between px-4 py-3">
+              <li key={r.reportId} className="flex items-center justify-between px-4 py-3 hover:bg-slate-50">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-500">
-                    <FileText size={16} />
+                  <span className="rounded border border-red-300 bg-red-50 px-2 py-1 font-mono text-[9.5px] font-black uppercase text-red-800 shadow-2xs">
+                    PDF DOCKET
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-slate-800">{r.title}</p>
-                    <p className="text-xs text-slate-400">Generated on {formatDate(r.generatedAt)}</p>
+                    <p className="text-sm font-semibold text-slate-800">{r.title}</p>
+                    <p className="text-xs text-slate-400">MoRTH Dispatched: {formatDate(r.generatedAt)}</p>
                   </div>
                 </div>
                 <Link to={r.locationId && basePath ? `${basePath}/${r.locationId}` : "#"} className="text-xs font-semibold text-brand-600 hover:underline">

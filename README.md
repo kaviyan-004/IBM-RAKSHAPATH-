@@ -1,109 +1,109 @@
-# RakshaPath
+# RakshaPath (रक्षापथ)
 
-**AI-Powered Road Safety Decision-Intelligence Platform**
+**National Road Safety Decision Support & Citizen Road Safety System**  
 *Predict • Understand • Intervene • Simulate • Save Lives*
 
-RakshaPath turns historical road-accident data into an actionable authority workflow: an interactive risk map, a normalized 0–100 risk score, cause analysis, future-risk prediction, cause-linked intervention recommendations, what-if impact simulation, and a budget-constrained portfolio optimizer. Built for IBM BOB National Hackathon — Problem Statement #3 (Transport: RoadSafe India).
+![Government of India Standard](https://img.shields.io/badge/Standard-National%20Portal%20of%20India%20(india.gov.in)-0B3B60?style=for-the-badge)
+![GIGW 3.0 Compliant](https://img.shields.io/badge/GIGW%203.0-Compliant-138808?style=for-the-badge)
+![Multilingual](https://img.shields.io/badge/Languages-English%20%7C%20%E0%A4%B9%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A5%80%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-FF9933?style=for-the-badge)
 
-Full product/technical background lives in [`docs/`](docs/):
+Built for the **Ministry of Road Transport and Highways (MoRTH)**, State Transport Departments, NHAI, District Road Safety Committees (DRSC), and the Citizens of India.
 
-- [`docs/PRD.md`](docs/PRD.md) — product requirements
-- [`docs/APP_FLOW.md`](docs/APP_FLOW.md) — screen-by-screen application flow
-- [`docs/TECH_STACK.md`](docs/TECH_STACK.md) — architecture & technology choices
-- [`docs/BACKEND_SCHEMA.md`](docs/BACKEND_SCHEMA.md) — database schema & REST API spec
-- [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — end-to-end build flow and current status
-- [`docs/UI_DESIGN.md`](docs/UI_DESIGN.md) — the 12-screen UI design and its mapping to the frontend
+---
 
-## Repository Structure
+## 🏛️ Project Overview
+
+RakshaPath is a next-generation **AI-Powered Road Safety Decision Intelligence & Public Service Ecosystem** designed in strict adherence to the **Guidelines for Indian Government Websites (GIGW 3.0)** and the UI/UX architecture of the **National Portal of India (https://www.india.gov.in/)**.
+
+It turns historical crash data and IRC:SP:88-2019 road safety audit standards into a comprehensive 3-sector governance platform:
+
+1. **🏛️ Government Wing (Administrative & Law Enforcement)**:
+   - High-level executive KPI dashboards for District Road Safety Committees (DRSC).
+   - District-wide blackspot identification and emerging risk prediction.
+   - Constrained safety budget optimizer allocating funds to maximize lives saved.
+   - Official Gazette dispatch dockets and formal PDF reports.
+
+2. **⚙️ Technical Wing (Road Engineering & Audit)**:
+   - GIS risk map with road-geometry diagnostics.
+   - Explainable AI (XAI) with SHAP cause fingerprints and vulnerable road user breakdowns.
+   - Counterfactual what-if simulation testing combinations of civil countermeasures.
+   - Live interactive Machine Learning training and evaluation suite.
+
+3. **👥 Public Wing (Citizen Safety & Grievance Redressal)**:
+   - Accessible to all citizens (including non-technical and rural populations).
+   - **Report Road Hazard (`/report-hazard`)**: Lodge grievances for potholes, damaged crash barriers, and broken signals with one-click GPS capture, photo evidence, and 24–72h SLA tracking.
+   - **Safer Routes Navigator (`/safer-routes`)**: Evaluate low-risk transit corridors with illumination levels, blackspot avoidance, and printable passage clearances.
+   - **Safety Updates (`/safety-updates`)**: Real-time access to Ministry Gazette orders, speed-limit revisions, and weather alerts with PDF downloads.
+
+---
+
+## 🎨 Design & GIGW 3.0 Compliance
+
+- **Official Color System**: National Deep Navy (`#0B3B60`), MoRTH Primary Blue (`#1963BD`), Saffron (`#FF9933` / `#F37A1F`), and India Green (`#138808`).
+- **National Identity**: Official Ashoka Lion Capital Emblem with *Satyameva Jayate*.
+- **Accessibility Toolbar**: Text resizing (`A-` / `A` / `A+`), High-Contrast Mode toggle, and Screen Reader Skip-to-Content navigation link.
+- **Tri-Sector Slide Selector**: Smooth segmented sector switch at login and across portal navigation.
+- **Multilingual Support**: Real-time localization in **English**, **हिन्दी (Hindi)**, and **தமிழ் (Tamil)** with persistent storage.
+- **Zero AI-Generated Pastel Icons**: Strictly styled using official MoRTH Gazette Dispatch Badges (`[CRITICAL ALERT]`, `[TRAFFIC CAUTION]`, `[CIVIL WORKS]`, `[OFFICIAL NOTICE]`), reference codes, and high-contrast monochrome icons.
+
+---
+
+## 📚 Documentation Index
+
+Complete specifications and architectural blueprints live in [`docs/`](docs/):
+
+- [`docs/UI_DESIGN.md`](docs/UI_DESIGN.md) — National Portal of India UI/UX standards, design tokens, GIGW 3.0 compliance, and screen inventory.
+- [`docs/APP_FLOW.md`](docs/APP_FLOW.md) — Tri-sector user journey, citizen grievance redressal flow, and corridor evaluation flows.
+- [`docs/PRD.md`](docs/PRD.md) — Comprehensive product requirements, persona profiles, and functional acceptance criteria.
+- [`docs/TECH_STACK.md`](docs/TECH_STACK.md) — Architecture and technology selections across frontend, backend, and AI models.
+- [`docs/BACKEND_SCHEMA.md`](docs/BACKEND_SCHEMA.md) — MongoDB collections, database schema, and REST API specification.
+- [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) — End-to-end build roadmap and verification milestones.
+
+---
+
+## 📁 Repository Structure
 
 ```
 RakshaPath075/
-├── frontend/     # React + Vite + TypeScript app (all UI code)
-├── backend/      # FastAPI service (all API/data/model code)
-├── docs/         # Product & technical documentation
-└── README.md
+├── frontend/     # React 18 + Vite + TypeScript (GIGW 3.0 Government Portal UI)
+├── backend/      # FastAPI + Motor (Async MongoDB) decision-intelligence service
+├── docs/         # Product, design, and engineering specifications
+└── README.md     # Primary documentation entry point
 ```
 
-Frontend and backend are independently runnable and communicate only over HTTP. Neither imports the other's source code.
+---
 
-## Frontend
+## 🚀 Quick Start Guide
 
-Stack: React 18 + Vite + TypeScript, Tailwind CSS, React Router, `react-leaflet` (risk map), Recharts (trend/impact charts), `lucide-react` icons.
+### 1. Frontend Setup (React + Vite + TypeScript)
 
 ```bash
 cd frontend
 npm install
-npm run dev       # http://localhost:5173
+npm run dev       # Launches on http://localhost:5173
 ```
 
-The frontend currently runs against **mock data** so every one of the 12 designed screens (login, dashboard, risk map, location intelligence, interventions, impact simulator, budget optimizer, reports, alerts, profile/settings — see `docs/UI_DESIGN.md`) is fully interactive without a backend. All data access goes through `frontend/src/api/*`, which either serves `frontend/src/data/mock/*` or calls the real backend, controlled by `frontend/.env`:
+- **Build verification**: `npm run build` (`tsc && vite build`)
+- **Language Switching**: Toggle between English, Hindi, and Tamil in the top right header.
+- **Sector Switcher**: Toggle between Government, Technical, and Public modes.
 
-```bash
-cp frontend/.env.example frontend/.env
-# VITE_USE_MOCK=true   -> use bundled mock data (default, no backend needed)
-# VITE_USE_MOCK=false  -> call VITE_API_BASE_URL per docs/BACKEND_SCHEMA.md
-```
-
-Because every page consumes data exclusively through that API layer, plugging in the real backend later requires no UI rewrite.
-
-Frontend source layout:
-
-```
-frontend/src/
-├── api/          # one module per backend domain (locations, risk, causes, prediction,
-│                    interventions, simulation, budget, reports, alerts, auth, dashboard)
-├── components/   # shared UI (Sidebar, Topbar, RiskBadge, InterventionCard, ...)
-├── charts/       # Recharts wrappers (trend line, impact bars, risk gauge)
-├── map/          # Leaflet risk map
-├── data/mock/    # mock dataset standing in for the backend (see Mock Data Rule below)
-├── hooks/        # useAuth, useAsync, useLocationsWithRisk, useLocationDetail, useAlerts
-├── layouts/      # AppLayout (sidebar+topbar shell), AuthLayout (login/signup)
-├── pages/        # one component per screen in docs/UI_DESIGN.md
-├── routes/       # route table
-├── services/     # low-level HTTP client + mock/real switch
-├── types/        # shared TypeScript types mirroring docs/BACKEND_SCHEMA.md
-└── utils/        # risk-level formatting, knapsack optimizer, counterfactual simulation math
-```
-
-## Backend (MongoDB Edition)
-
-The backend under `/backend` is a production-grade FastAPI service using **MongoDB** (`motor` async driver) implementing the complete RakshaPath architecture described in [`docs/BACKEND_SCHEMA.md`](docs/BACKEND_SCHEMA.md) and [`docs/APP_FLOW.md`](docs/APP_FLOW.md).
+### 2. Backend Setup (FastAPI + MongoDB)
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-- API: http://localhost:8000
-- Interactive Swagger docs: http://localhost:8000/docs
-- Run automated MongoDB test suite: `python -m pytest backend/test_backend.py`
+- **API Base**: http://localhost:8000
+- **Interactive Swagger Documentation**: http://localhost:8000/docs
+- **Automated Test Suite**: `python -m pytest backend/test_backend.py`
 
-### MongoDB Collections Architecture
+---
 
-| Collection | Schema / Features |
-|---|---|
-| `locations` | Embedded documents containing coordinates (`geometry` 2dsphere index), `risk_score` (0–100), `cause_fingerprint` (SHAP factors), `vulnerability` (groups), `temporal` (hourly/day distributions), and `forecast` (multi-year series with uncertainty bounds). |
-| `interventions` | Catalog of countermeasures with min/max costs, expected effect ranges, and confidence levels. |
-| `users` | Authority official credentials with SHA-256 salted hashing and JWT tokens. |
-| `alerts` | High-risk and emerging risk notifications. |
-| `reports` | Generated authority decision reports & metadata. |
-| `district_summaries` | District-wide KPI rollups and priority corridors. |
-| `incidents` | Incident management CRUD records. |
+## 🛡️ License & Attributions
 
-Environment variables (`backend/.env`, see `.env.example`):
-```env
-MONGODB_URL=mongodb://localhost:27017
-DATABASE_NAME=rakshapath_db
-SECRET_KEY=rakshapath-safety-secret-key-production-change-me
-ALLOWED_ORIGINS=["http://localhost:3000","http://localhost:5173","http://localhost:8000"]
-```
-*(Supports local MongoDB Community Server on port 27017 or remote MongoDB Atlas connection strings; includes an automatic in-memory collection cache if no local daemon is running).*
-
-## Development Notes
-
-- Frontend and backend each keep their own dependency manifest (`frontend/package.json`, `backend/requirements.txt`) and their own `.env`. Never commit either `.env` file.
-- Mock data lives only in `frontend/src/data/mock/` and is consumed through the same `frontend/src/api/*` abstraction the real backend will use — UI components never import mock data directly.
-- Model-honesty rules from the PRD apply throughout the UI: cause analysis is always labeled as model association (not causation), simulation/impact numbers always show a confidence level and uncertainty range, and nothing is presented as a guaranteed real-world outcome.
+- Hosted by **National Informatics Centre (NIC)** for the Ministry of Road Transport and Highways (MoRTH), Government of India.
+- Designed in conformance with **GIGW 3.0** guidelines and **IRC:SP:88-2019** Road Safety Audit standards.

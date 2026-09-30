@@ -1,10 +1,13 @@
 import { AuthProvider } from "@/hooks/useAuth";
+import { LanguageProvider } from "@/context/LanguageContext";
 import AppRoutes from "@/routes";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

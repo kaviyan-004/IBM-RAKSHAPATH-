@@ -2,30 +2,31 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
-  Building2,
   Eye,
   EyeOff,
   HelpCircle,
-  Leaf,
   Lock,
   Mail,
   ShieldCheck,
-  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage, type SupportedLanguage } from "@/context/LanguageContext";
 import { sectorLandingPath } from "@/navigation/sectorNavigation";
 import type { Sector } from "@/types";
+import SectorSlideSelector from "@/components/SectorSlideSelector";
 
 const REMEMBER_KEY = "rakshapath.rememberedEmail";
 
 export default function LoginPage() {
   const { login, setSector } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [selectedSector, setSelectedSector] = useState<Sector>("government");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -60,16 +61,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ email, password });
-      // Default to government sector for seamless landing experience
-      const userSector: Sector = "government";
-      setSector(userSector);
+      setSector(selectedSector);
       try {
         if (rememberMe) localStorage.setItem(REMEMBER_KEY, email);
         else localStorage.removeItem(REMEMBER_KEY);
       } catch {
         // ignore
       }
-      navigate(sectorLandingPath(userSector));
+      navigate(sectorLandingPath(selectedSector));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to sign in. Please check your credentials.";
@@ -86,6 +85,9 @@ export default function LoginPage() {
       className={`flex min-h-screen h-screen flex-col bg-white text-slate-800 ${scaleMultiplier} antialiased overflow-hidden select-none`}
       style={{ fontFamily: "'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
     >
+      {/* Top Tricolor Ribbon (india.gov.in standard) */}
+      <div className="tricolor-stripe w-full shrink-0" />
+
       {/* =========================================================================
           TOP HEADER BAR
           ========================================================================= */}
@@ -94,11 +96,11 @@ export default function LoginPage() {
         <div className="flex items-center gap-3">
           <AshokaEmblem className="h-9 w-auto text-slate-900" />
           <div className="flex flex-col justify-center leading-tight">
-            <span className="text-[12.5px] font-semibold text-slate-900 tracking-tight">
-              Building Safer Roads
+            <span className="text-[12.5px] font-bold text-slate-900 tracking-tight">
+              {t.govOfIndia}
             </span>
-            <span className="text-[11.5px] font-normal text-slate-600">
-              for a Developed India
+            <span className="text-[11.5px] font-medium text-slate-600">
+              {t.ministryName}
             </span>
           </div>
         </div>
@@ -108,9 +110,10 @@ export default function LoginPage() {
           {/* Language Selector */}
           <div className="relative flex items-center">
             <select
-              defaultValue="en"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
               aria-label="Language selector"
-              className="appearance-none bg-transparent pr-4 text-xs font-normal text-slate-700 outline-none cursor-pointer hover:text-slate-900"
+              className="appearance-none bg-transparent pr-4 text-xs font-bold text-slate-800 outline-none cursor-pointer hover:text-slate-900"
             >
               <option value="en">English</option>
               <option value="hi">हिन्दी</option>
@@ -170,77 +173,56 @@ export default function LoginPage() {
       </header>
 
       {/* =========================================================================
-          MAIN BODY: 2-COLUMN SPLIT (HERO ON LEFT, LOGIN ON RIGHT)
+          MAIN BODY: BALANCED 2-COLUMN GOVERNMENT PORTAL CONTAINER
           ========================================================================= */}
-      <main className="flex flex-1 min-h-0 w-full flex-col lg:flex-row overflow-hidden">
-        {/* LEFT COLUMN: HERO IMAGE & 4 PILLARS OVERLAY BAR */}
-        <section className="relative hidden lg:flex lg:w-[54%] xl:w-[55%] h-full overflow-hidden bg-slate-900 select-none">
-          <img
-            src="/login-hero.png"
-            alt="RakshaPath — AI-Powered Road Safety Decision Intelligence Platform"
-            className="h-full w-full object-cover object-left-top"
-          />
+      <main className="flex flex-1 min-h-0 w-full items-center justify-center bg-[#f0f4f9] px-4 py-4 sm:px-6 overflow-y-auto">
+        <div className="w-full max-w-5xl rounded-xl border border-slate-300 bg-white shadow-gov-lg overflow-hidden grid grid-cols-1 lg:grid-cols-12 my-auto">
+          {/* LEFT COLUMN: OFFICIAL RAKSHAPATH HERO GRAPHIC */}
+          <section className="relative hidden lg:flex lg:col-span-6 items-center justify-center bg-[#edf4fb] border-r border-slate-200 overflow-hidden select-none">
+            <img
+              src="/login-hero.png"
+              alt="RakshaPath — AI-Powered Road Safety Decision Intelligence Platform"
+              className="w-full h-full object-contain object-center"
+            />
+          </section>
 
-          {/* 4 Pillars Bottom Bar (Safer Citizens, Smarter Cities, Sustainable Mobility, Viksit Bharat) */}
-          <div className="absolute bottom-0 inset-x-0 z-10 grid grid-cols-4 border-t border-white/20 bg-[#162739]/85 backdrop-blur-[3px] py-2.5 text-center text-white">
-            <div className="flex flex-col items-center justify-center gap-1 border-r border-white/15 px-2">
-              <Users size={19} className="text-white/95" />
-              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Safer Citizens</span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 border-r border-white/15 px-2">
-              <Building2 size={19} className="text-white/95" />
-              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Smarter Cities</span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 border-r border-white/15 px-2">
-              <Leaf size={19} className="text-white/95" />
-              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Sustainable Mobility</span>
-            </div>
-            <div className="flex flex-col items-center justify-center gap-1 px-2">
-              <IndiaOutlineIcon className="h-5 w-5 text-white/95" />
-              <span className="text-[11.5px] font-medium tracking-wide text-white/95">Viksit Bharat</span>
-            </div>
-          </div>
-        </section>
-
-        {/* RIGHT COLUMN: LOGIN FORM & AUTHORIZED ACCESS CARD */}
-        <section className="flex flex-1 flex-col items-center justify-center bg-[#F4F7FB] px-4 py-4 sm:px-8 overflow-y-auto">
-          <div className="w-full max-w-[430px] flex flex-col items-center my-auto py-2">
-            {/* White Sign-in Card */}
-            <div className="w-full rounded-2xl border border-slate-200/80 bg-white p-7 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.04)]">
-              {/* Header: SECURE ACCESS with Cyan/Blue horizontal line */}
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-wider text-[#0066cc] uppercase">
+          {/* RIGHT COLUMN: PERFECTLY ALIGNED LOGIN FORM */}
+          <section className="lg:col-span-6 bg-white p-6 sm:p-7 flex flex-col justify-center">
+            <div className="w-full max-w-[420px] mx-auto">
+              {/* Header Badge */}
+              <div className="mb-2 flex items-center gap-2 text-[11px] font-bold tracking-wider text-[#1963bd] uppercase">
                 <span className="flex items-center gap-1">
-                  <Lock size={12} className="text-[#0066cc]" />
-                  Secure Access
+                  <Lock size={12} className="text-[#1963bd]" />
+                  Official Single Sign-On
                 </span>
-                <span className="h-[1.5px] w-24 bg-[#66a3e0]/50 rounded-full" />
+                <span className="h-[1.5px] w-16 bg-[#1963bd]/40 rounded-full" />
               </div>
 
               {/* Title & Subtitle */}
-              <h1 className="text-[23px] sm:text-[25px] font-bold text-slate-800 tracking-tight leading-snug">
-                Welcome to <span className="text-[#1976D2]">RakshaPath</span>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                Welcome to <span className="text-[#1963bd]">RakshaPath</span>
               </h1>
-              <p className="mt-1 text-xs text-slate-500 font-normal leading-relaxed">
+              <p className="mt-1 text-xs text-slate-500 font-normal">
                 Sign in to access road safety intelligence and decision tools.
               </p>
 
               {/* Error / Notice Banners */}
               {error && (
-                <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs font-medium text-red-700">
+                <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-700">
                   {error}
                 </div>
               )}
               {notice && (
-                <div role="status" className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-2.5 text-xs font-medium text-blue-700">
+                <div role="status" className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-2 text-xs font-medium text-blue-700">
                   {notice}
                 </div>
               )}
 
               {/* Login Form */}
-              <form onSubmit={handleSubmit} className="mt-4 space-y-3.5" noValidate>
+              <form onSubmit={handleSubmit} className="mt-4 space-y-3" noValidate>
                 <div>
                   <label htmlFor="login-email" className="mb-1 block text-xs font-semibold text-slate-700">
-                    Email Address
+                    Email Address / ईमेल पता *
                   </label>
                   <div className="relative">
                     <Mail size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -252,14 +234,14 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your official email"
-                      className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1976D2] focus:ring-1 focus:ring-[#1976D2]"
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1963bd] focus:ring-1 focus:ring-[#1963bd]"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="login-password" className="mb-1 block text-xs font-semibold text-slate-700">
-                    Password
+                    Password / पासवर्ड *
                   </label>
                   <div className="relative">
                     <Lock size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -271,7 +253,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1976D2] focus:ring-1 focus:ring-[#1976D2]"
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1963bd] focus:ring-1 focus:ring-[#1963bd]"
                     />
                     <button
                       type="button"
@@ -285,6 +267,15 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {/* Sector Box with Dropdown Selector (india.gov.in style) */}
+                <div>
+                  <SectorSlideSelector
+                    value={selectedSector}
+                    onChange={setSelectedSector}
+                    label="Choose Sector / अनुभाग चुनें"
+                  />
+                </div>
+
                 {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between text-xs pt-0.5">
                   <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
@@ -292,14 +283,14 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="h-3.5 w-3.5 rounded border-slate-300 accent-[#1976D2]"
+                      className="h-3.5 w-3.5 rounded border-slate-300 accent-[#1963bd]"
                     />
                     Remember me
                   </label>
                   <button
                     type="button"
                     onClick={() => setNotice("Please contact your department administrator to reset your credentials.")}
-                    className="font-medium text-[#1976D2] hover:underline"
+                    className="font-medium text-[#1963bd] hover:underline"
                   >
                     Forgot Password?
                   </button>
@@ -309,78 +300,55 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-1 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#1976D2] text-xs sm:text-sm font-semibold text-white transition hover:bg-[#1565C0] active:bg-[#0D47A1] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
+                  className="mt-1 flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#1963bd] text-xs sm:text-sm font-bold text-white transition hover:bg-[#15529e] active:bg-[#103d75] disabled:cursor-not-allowed disabled:opacity-60 shadow-sm"
                 >
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading ? t.signingIn : t.signIn}
                   {!loading && <ArrowRight size={15} />}
                 </button>
               </form>
 
-              {/* OR Divider */}
-              <div className="my-3.5 flex items-center gap-3 text-[11px] text-slate-400 font-medium">
-                <span className="h-px flex-1 bg-slate-200" />
-                OR
-                <span className="h-px flex-1 bg-slate-200" />
-              </div>
-
-              {/* Continue with Google */}
-              <button
-                type="button"
-                onClick={() => setNotice("Single Sign-On (SSO) with Google Workspace is restricted to authorized departments.")}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-xs sm:text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
-              >
-                <GoogleGlyph />
-                Continue with Google
-              </button>
-
               {/* Create an account link */}
-              <p className="mt-4 text-center text-xs text-slate-500 font-normal">
+              <p className="mt-3 text-center text-xs text-slate-500 font-normal">
                 New to RakshaPath?{" "}
-                <Link to="/signup" className="font-semibold text-[#1976D2] hover:underline">
+                <Link to="/signup" className="font-semibold text-[#1963bd] hover:underline">
                   Create an account
                 </Link>
               </p>
-            </div>
 
-            {/* Blue Notice Box: Authorized access only */}
-            <div className="mt-3.5 w-full rounded-xl border border-[#D3E3F8] bg-[#EBF3FC] p-3.5 flex items-start gap-2.5 text-slate-700">
-              <div className="mt-0.5 shrink-0">
-                <ShieldCheck size={18} className="text-[#1976D2]" />
-              </div>
-              <div className="leading-snug">
-                <p className="text-xs font-bold text-slate-900">Authorized access only</p>
-                <p className="text-[11px] text-slate-600 mt-0.5">
-                  This system is for authorized users from Government Departments, Traffic Police, Road Safety Authorities, Researchers and other permitted users.
-                </p>
+              {/* Compact Security Note */}
+              <div className="mt-3 rounded-md border border-blue-100 bg-[#f2f7fd] p-2 flex items-center gap-2 text-[11px] text-slate-600">
+                <ShieldCheck size={14} className="text-[#1963bd] shrink-0" />
+                <span>Authorized for Govt. Officials, Engineers & Citizens under MoRTH guidelines.</span>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
 
       {/* =========================================================================
           BOTTOM FOOTER BAR
           ========================================================================= */}
       <footer className="flex h-11 shrink-0 items-center justify-between border-t border-slate-200/90 bg-white px-4 sm:px-8 text-[11px] text-slate-500 z-20">
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="hover:text-slate-800 cursor-pointer">About</span>
           <span className="text-slate-300">|</span>
           <span className="hover:text-slate-800 cursor-pointer">Privacy Policy</span>
           <span className="text-slate-300">|</span>
           <span className="hover:text-slate-800 cursor-pointer">Terms of Use</span>
           <span className="text-slate-300">|</span>
-          <span className="hover:text-slate-800 cursor-pointer">Accessibility</span>
+          <span className="hover:text-slate-800 cursor-pointer">Accessibility Statement</span>
           <span className="text-slate-300">|</span>
-          <span className="hover:text-slate-800 cursor-pointer">Contact Us</span>
+          <span className="hover:text-slate-800 cursor-pointer">Help</span>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <span className="text-slate-600 font-normal">
-            A Safer India Initiative <span className="text-slate-300 mx-1">|</span> Made for a Better Tomorrow
+        <div className="flex items-center gap-3">
+          <span className="text-slate-600 font-normal hidden sm:inline">
+            Hosted by <strong>National Informatics Centre (NIC)</strong> | MoRTH
           </span>
           <TricolorWave className="h-4 w-6" />
         </div>
       </footer>
+      <div className="tricolor-stripe w-full shrink-0" />
     </div>
   );
 }

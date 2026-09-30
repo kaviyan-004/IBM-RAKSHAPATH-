@@ -73,21 +73,22 @@ Road authorities can have a large volume of historical accident information, but
 - Design the system so that additional states/cities can use configurable data adapters.
 - Capture post-intervention outcomes in future versions to recalibrate impact estimates.
 
-### 3.3 Non-goals for the 8-hour MVP
+### 3.3 Target Scope & Expanded Architecture
 
-- A consumer navigation app or full driver-alert product.
-- Live CCTV/telemetry integrations requiring external approvals.
-- Nationwide production deployment.
-- Automated civil-engineering decisions without human validation.
-- A claim that simulated intervention impact is guaranteed to occur in the field.
-- Full multilingual citizen reporting in the hackathon build; this remains a Phase 2 feature.
+- **Tri-Sector Architecture**:
+  - **Government Wing**: Executive oversight, multi-location budget optimization, and official gazette dockets.
+  - **Technical Wing**: IRC:SP:88-2019 road safety engineering audits, GIS diagnostics, XAI/SHAP feature attribution, and countermeasure simulation.
+  - **Public Citizen Wing**: CPGRAMS-integrated road hazard grievance reporting (potholes, signals, barriers) with one-click GPS and SLA tracking; AI safe passage corridor routing; and official safety bulletins.
+- **Multilingual Localization**: Real-time interface localization across English, हिन्दी (Hindi), and தமிழ் (Tamil) adhering to National Portal of India standards.
+- **GIGW 3.0 Compliance**: Ashoka Lion Capital Emblem, tricolor top bar, high-contrast toggle, font size accessibility (`A-` / `A` / `A+`), and screen reader skip links.
 
 ## 4. Users, Personas & Jobs-to-be-Done
 
-| Persona | Primary need | Key product action |
+| Sector / Persona | Primary Need | Key Product Action |
 |---|---|---|
-| State / UT transport authority | Prioritize safety investment across a network | Review risk map, compare interventions, run budget portfolio |
-| Highway authority / NHAI / PWD | Decide which road segments need attention | Inspect segment risk, causes and future trajectory |
+| **🏛️ Government Official** (DRSC / Transport Commissioner) | Prioritize safety investment across districts & law enforcement | Review executive dashboard, inspect priority blackspots, optimize budget portfolio, download PDF dockets |
+| **⚙️ Technical Engineer** (NHAI / PWD / Safety Auditor) | Diagnose engineering defects & verify countermeasures | Inspect cause fingerprints (SHAP), test counterfactual what-if simulations, train ML models, conduct field audits |
+| **👥 General Citizen** (Commuter / Driver / Pedestrian) | Report hazards & navigate safe corridors | File photo/GPS hazard grievances with SLA tracking, query safe transit corridors, download gazette orders |
 | Traffic police | Plan enforcement and patrol priorities | Review time/location/vehicle-specific risk and intervention priority |
 | District Road Safety Committee | Coordinate safety interventions | Compare options and produce an authority-ready report |
 | Municipal / urban planning body | Improve high-risk junctions and corridors | Select location and intervention portfolio |
